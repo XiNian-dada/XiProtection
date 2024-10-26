@@ -2,11 +2,7 @@ name: XiProtection
 version: '${project.version}'
 main: cn.hairuosky.xiprotection.XiProtection
 api-version: '1.16'
-name: XiProtection
-version: 1.0
-main: cn.hairuosky.xiprotection.XiProtection
-api-version: 1.16
-author: YourName
+author: XiNian_dada
 
 permissions:
   xiprotection.bypass.*:
