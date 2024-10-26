@@ -1,0 +1,27 @@
+enable: false
+protect:
+  anti-break: false
+  anti-place: false
+  always-sun: false
+  always-rain: false
+  always-day: false
+  always-night: true
+  anti-fire: false
+  anti-shear: true # 禁止剪羊毛
+  keep-full-hunger: true # 保持满饱食度
+  anti-pvp: true # 禁止 PvP
+  prevent-explosion: true # 阻止爆炸
+  keep-full-health: true
+  prevent-treading: true # 禁止耕地被踩踏
+  prevent-throwables: true # 禁止使用投掷物
+  keep-items-enabled: true # 开关，启用保持物品功能
+  keep-items:
+    - item: DIAMOND_SWORD
+      quantity: 1
+    - item: GOLDEN_APPLE
+      quantity: 5
+  banned-commands-enabled: true # 开关
+  banned-commands:
+      - "/tpa"
+      - "/home"
+      - "/warp"

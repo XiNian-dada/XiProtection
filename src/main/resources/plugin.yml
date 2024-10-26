@@ -1,0 +1,59 @@
+name: XiProtection
+version: '${project.version}'
+main: cn.hairuosky.xiprotection.XiProtection
+api-version: '1.16'
+name: XiProtection
+version: 1.0
+main: cn.hairuosky.xiprotection.XiProtection
+api-version: 1.16
+author: YourName
+
+permissions:
+  xiprotection.bypass.*:
+    description: "允许玩家绕过所有保护限制"
+    default: op
+    children:
+      xiprotection.bypass.break: true
+      xiprotection.bypass.place: true
+      xiprotection.bypass.fire: true
+      xiprotection.bypass.shear: true
+      xiprotection.bypass.hunger: true
+      xiprotection.bypass.pvp: true
+      xiprotection.bypass.health: true
+      xiprotection.bypass.treading: true
+      xiprotection.bypass.throwables: true
+      xiprotection.bypass.keep-items: true
+      xiprotection.bypass.banned-commands: true
+  xiprotection.bypass.break:
+    description: "允许玩家在受保护的世界中破坏方块"
+    default: op
+  xiprotection.bypass.place:
+    description: "允许玩家在受保护的世界中放置方块"
+    default: op
+  xiprotection.bypass.fire:
+    description: "允许玩家在受保护的世界中引燃火焰"
+    default: op
+  xiprotection.bypass.shear:
+    description: "允许玩家在受保护的世界中剪羊毛"
+    default: op
+  xiprotection.bypass.hunger:
+    description: "允许玩家在受保护的世界中改变饥饿值"
+    default: op
+  xiprotection.bypass.pvp:
+    description: "允许玩家在受保护的世界中进行 PvP"
+    default: op
+  xiprotection.bypass.health:
+    description: "允许玩家在受保护的世界中受到伤害"
+    default: op
+  xiprotection.bypass.treading:
+    description: "允许玩家在受保护的世界中踩踏耕地"
+    default: op
+  xiprotection.bypass.throwables:
+    description: "允许玩家在受保护的世界中使用投掷物"
+    default: op
+  xiprotection.bypass.keep-items:
+    description: "允许玩家在受保护的世界中保持物品"
+    default: op
+  xiprotection.bypass.banned-commands:
+    description: "允许玩家在受保护的世界中使用被禁止的命令"
+    default: op
