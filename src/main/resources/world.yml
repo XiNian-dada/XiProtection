@@ -22,6 +22,19 @@ protect:
       quantity: 5
   banned-commands-enabled: true # 开关
   banned-commands:
-      - "/tpa"
-      - "/home"
-      - "/warp"
+    - "/tpa"
+    - "/home"
+    - "/warp"
+  prevent-eating: true # 禁止吃东西
+  prevent-drinking: true # 禁止喝东西
+  prevent-potion-effects-enabled: true
+  prevent-potion-effects:
+    - "SPEED" # 屏蔽速度药水效果
+    - "JUMP" # 屏蔽跳跃药水效果
+    - "INVISIBILITY" # 屏蔽隐形药水效果
+  keep-potion-effects-enabled: true # 开关
+  keep-potion-effects:
+    - effect: "SPEED"  # 始终保持速度药水效果
+      level: 1          # 药水等级
+    - effect: "STRENGTH"  # 始终保持力量药水效果
+      level: 2          # 药水等级

@@ -20,6 +20,8 @@ permissions:
       xiprotection.bypass.throwables: true
       xiprotection.bypass.keep-items: true
       xiprotection.bypass.banned-commands: true
+      xiprotection.bypass.eating: true
+      xiprotection.bypass.drinking: true
   xiprotection.bypass.break:
     description: "允许玩家在受保护的世界中破坏方块"
     default: op
@@ -52,4 +54,13 @@ permissions:
     default: op
   xiprotection.bypass.banned-commands:
     description: "允许玩家在受保护的世界中使用被禁止的命令"
+    default: op
+  xiprotection.bypass.eating:
+    description: "允许玩家在受保护的世界中吃东西"
+    default: op
+  xiprotection.bypass.drinking:
+    description: "允许玩家在受保护的世界中喝东西"
+    default: op
+  xiprotection.bypass.effects:
+    description: "允许玩家在受保护的世界中无视药水效果配置"
     default: op

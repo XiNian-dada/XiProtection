@@ -11,25 +11,38 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class XiProtection extends JavaPlugin {
     private ProtectionListener protectionListener;
+    private final Map<World, FileConfiguration> worldConfigs = new HashMap<>();
+
     @Override
     public void onEnable() {
         // 注册事件监听器
         protectionListener = new ProtectionListener(this);
         Bukkit.getPluginManager().registerEvents(protectionListener, this);
         createWorldConfigFiles();
+        loadWorldConfigs(); // 加载世界配置
 
         // 定时任务更新天气和时间
-        Bukkit.getScheduler().runTaskTimer(this, protectionListener::updateWorldSettings, 0L, 20L); // 每秒更新一次
-        Bukkit.getScheduler().runTaskTimer(this, () -> checkAllPlayersItems(protectionListener), 0L, 1200L); // 每 60 秒
+        Bukkit.getScheduler().runTaskTimer(this, protectionListener::updateWorldSettings, 0L, 30*20L); // 每秒更新一次
+        Bukkit.getScheduler().runTaskTimer(this, () -> checkAllPlayersItems(protectionListener), 0L, 60*20L); // 每 60 秒
+        Bukkit.getScheduler().runTaskTimer(this, () -> checkAllPlayersEffects(protectionListener), 0L, 60*20L); // 每 60 秒
     }
+
     private void checkAllPlayersItems(ProtectionListener protectionListener) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             protectionListener.maintainItems(player);
         }
     }
+    private void checkAllPlayersEffects(ProtectionListener protectionListener){
+        for (Player player : Bukkit.getOnlinePlayers()){
+            protectionListener.handlePotionEffects(player);
+        }
+    }
+
     @Override
     public void onDisable() {
         // Plugin shutdown logic
@@ -66,12 +79,19 @@ public final class XiProtection extends JavaPlugin {
         }
     }
 
-    public FileConfiguration getWorldConfig(World world) {
-        // 获取世界的配置文件
-        File worldConfigFile = new File(getDataFolder(), world.getName() + ".yml");
-        if (worldConfigFile.exists()) {
-            return YamlConfiguration.loadConfiguration(worldConfigFile);
+    private void loadWorldConfigs() {
+        // 加载所有世界的配置到 Map 中
+        for (World world : Bukkit.getWorlds()) {
+            File worldConfigFile = new File(getDataFolder(), world.getName() + ".yml");
+            if (worldConfigFile.exists()) {
+                FileConfiguration config = YamlConfiguration.loadConfiguration(worldConfigFile);
+                worldConfigs.put(world, config);
+            }
         }
-        return null;
+    }
+
+    public FileConfiguration getWorldConfig(World world) {
+        // 从 Map 中获取世界的配置文件
+        return worldConfigs.get(world);
     }
 }
