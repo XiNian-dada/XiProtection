@@ -26,6 +26,7 @@ import java.util.Set;
 
 public class ProtectionListener implements Listener {
     private final XiProtection plugin;
+    private int duration;
 
     public ProtectionListener(XiProtection plugin) {
         this.plugin = plugin;
@@ -329,9 +330,12 @@ public class ProtectionListener implements Listener {
     public void handlePotionEffects(Player player) {
         World world = player.getWorld();
         FileConfiguration config = plugin.getWorldConfig(world);
+        int duration = plugin.getConfig().getInt("effect-check-interval", 600);
+
         if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.effects")) {
             return; // 如果有权限，直接返回
         }
+
         if (config != null) {
             boolean preventEffectsEnabled = config.getBoolean("protect.prevent-potion-effects-enabled");
             boolean keepEffectsEnabled = config.getBoolean("protect.keep-potion-effects-enabled");
@@ -350,8 +354,10 @@ public class ProtectionListener implements Listener {
                     // 添加药水效果
                     PotionEffectType effectType = PotionEffectType.getByName(effectName);
                     if (effectType != null && level != null) {
-                        int duration = Integer.MAX_VALUE; // 可以根据需要设置持续时间
-                        player.addPotionEffect(new PotionEffect(effectType, duration, level - 1, true, false));
+                        player.addPotionEffect(new PotionEffect(effectType, duration + 100, level - 1, true, false));
+                        player.sendMessage("已应用保持药水效果: " + effectName + " 等级: " + (level - 1));
+                    } else {
+                        player.sendMessage("无法应用保持药水效果: " + effectName + "，请检查配置。");
                     }
                 }
             }
@@ -359,22 +365,22 @@ public class ProtectionListener implements Listener {
             // 屏蔽药水效果
             if (preventEffectsEnabled) {
                 for (PotionEffect potionEffect : player.getActivePotionEffects()) {
-                    boolean isPrevented = preventEffectsSet.contains(potionEffect.getType().getName());
-                    boolean isKept = keepEffectsSet.contains(potionEffect.getType().getName());
+                    String potionEffectName = potionEffect.getType().getName();
+                    boolean isPrevented = preventEffectsSet.contains(potionEffectName);
 
-                    if (isPrevented && isKept) {
-                        // 提示玩家存在冲突
-                        notifyOps(player.getWorld(),("你不能同时拥有屏蔽和保持的相同药水效果: " + potionEffect.getType().getName()));
-                    }
-
-                    // 移除冲突的效果
-                    if (isPrevented || isKept) {
+                    // 仅移除在 preventEffectsSet 中的效果
+                    if (isPrevented) {
                         player.removePotionEffect(potionEffect.getType());
+                        player.sendMessage("已移除药水效果: " + potionEffectName);
                     }
                 }
             }
+        } else {
+            player.sendMessage("配置未找到，请检查插件设置。");
         }
     }
+
+
 
     private void notifyOps(World world, String message) {
         boolean hasOp = false;
