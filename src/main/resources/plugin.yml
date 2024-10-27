@@ -3,25 +3,29 @@ version: '${project.version}'
 main: cn.hairuosky.xiprotection.XiProtection
 api-version: '1.16'
 author: XiNian_dada
-
+commands:
+  xiprotection:
+    description: "插件主指令"
+    usage: "/<command> <set|reload|editor> ..."
+    permission: xiprotection.command.*
 permissions:
   xiprotection.bypass.*:
     description: "允许玩家绕过所有保护限制"
     default: op
     children:
-      xiprotection.bypass.break: true
-      xiprotection.bypass.place: true
-      xiprotection.bypass.fire: true
-      xiprotection.bypass.shear: true
-      xiprotection.bypass.hunger: true
-      xiprotection.bypass.pvp: true
-      xiprotection.bypass.health: true
-      xiprotection.bypass.treading: true
-      xiprotection.bypass.throwables: true
-      xiprotection.bypass.keep-items: true
-      xiprotection.bypass.banned-commands: true
-      xiprotection.bypass.eating: true
-      xiprotection.bypass.drinking: true
+      - xiprotection.bypass.break
+      - xiprotection.bypass.place
+      - xiprotection.bypass.fire
+      - xiprotection.bypass.shear
+      - xiprotection.bypass.hunger
+      - xiprotection.bypass.pvp
+      - xiprotection.bypass.health
+      - xiprotection.bypass.treading
+      - xiprotection.bypass.throwables
+      - xiprotection.bypass.keep-items
+      - xiprotection.bypass.banned-commands
+      - xiprotection.bypass.eating
+      - xiprotection.bypass.drinking
   xiprotection.bypass.break:
     description: "允许玩家在受保护的世界中破坏方块"
     default: op

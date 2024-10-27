@@ -1,0 +1,50 @@
+update-interval: 600 # 每30秒
+item-check-interval: 1200 # 每60秒
+effect-check-interval: 1200 # 每60秒
+gui:
+  world:
+    world: GRASS_BLOCK
+    world_the_end: SNOWBALL
+    world_nether: diamond_sword
+  option:
+    anti-break: DIAMOND_PICKAXE
+    anti-break-name: "防止破坏"
+    anti-place: DIAMOND_PICKAXE
+    anti-place-name: "防止放置"
+    always-sun: GOLDEN_SWORD
+    always-sun-name: "永远晴天"
+    always-rain: WATER_BUCKET
+    always-rain-name: "永远下雨"
+    always-day: GOLDEN_SWORD
+    always-day-name: "永远白天"
+    always-night: GOLDEN_SWORD
+    always-night-name: "永远黑夜"
+    anti-fire: FIRE
+    anti-fire-name: "防止火灾"
+    anti-shear: SHEARS
+    anti-shear-name: "防止剪切"
+    keep-full-hunger: COOKED_BEEF
+    keep-full-hunger-name: "保持饥饿值"
+    anti-pvp: DIAMOND_SWORD
+    anti-pvp-name: "防止 PvP"
+    prevent-explosion: TNT
+    prevent-explosion-name: "防止爆炸"
+    keep-full-health: GOLDEN_APPLE
+    keep-full-health-name: "保持生命值"
+    prevent-treading: GRASS_BLOCK
+    prevent-treading-name: "防止踩踏"
+    prevent-throwables: ENDER_PEARL
+    prevent-throwables-name: "防止投掷物"
+    keep-items-enabled: CHEST
+    keep-items-enabled-name: "保持物品启用"
+    banned-commands-enabled: BARRIER
+    banned-commands-enabled-name: "禁止命令启用"
+    prevent-eating: COOKED_BEEF
+    prevent-eating-name: "防止吃食"
+    prevent-drinking: POTION
+    prevent-drinking-name: "防止饮水"
+    prevent-potion-effects-enabled: POTION
+    prevent-potion-effects-enabled-name: "防止药水效果"
+    keep-potion-effects-enabled: POTION
+    keep-potion-effects-enabled-name: "保持药水效果"
+

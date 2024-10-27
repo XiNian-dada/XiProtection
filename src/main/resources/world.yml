@@ -2,10 +2,13 @@ enable: false
 protect:
   anti-break: false
   anti-place: false
+
+
   always-sun: false
   always-rain: false
   always-day: false
   always-night: true
+
   anti-fire: false
   anti-shear: true # 禁止剪羊毛
   keep-full-hunger: true # 保持满饱食度
@@ -14,6 +17,8 @@ protect:
   keep-full-health: true
   prevent-treading: true # 禁止耕地被踩踏
   prevent-throwables: true # 禁止使用投掷物
+
+
   keep-items-enabled: true # 开关，启用保持物品功能
   keep-items:
     - item: DIAMOND_SWORD
@@ -27,6 +32,8 @@ protect:
     - "/warp"
   prevent-eating: true # 禁止吃东西
   prevent-drinking: true # 禁止喝东西
+
+
   prevent-potion-effects-enabled: true
   prevent-potion-effects:
     - "SPEED" # 屏蔽速度药水效果
