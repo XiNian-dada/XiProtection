@@ -1,6 +1,7 @@
 package cn.hairuosky.xiprotection;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -14,20 +15,23 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-
+//TODO 语言文件
 public final class XiProtection extends JavaPlugin {
     private ProtectionListener protectionListener;
     private final Map<World, FileConfiguration> worldConfigs = new HashMap<>();
+    private Map<String, String> languageMap = new HashMap<>();
     private int updateInterval; // 更新间隔
     private int itemCheckInterval; // 物品检查间隔
     private int effectCheckInterval; // 效果检查间隔
     private int updateTaskId;
     private int itemCheckTaskId;
     private int effectCheckTaskId;
-
+    public String prefix;
+    private boolean debugModeSwitch;
     @Override
     public void onEnable() {
         saveDefaultConfig(); // 创建默认配置文件
+        loadLanguages(); // 加载语言文件
         loadGlobalConfig(); // 加载全局配置
         initializeProtectionListener();
         // 注册命令和补全
@@ -42,6 +46,8 @@ public final class XiProtection extends JavaPlugin {
         updateInterval = getConfig().getInt("update-interval", 600); // 默认30秒
         itemCheckInterval = getConfig().getInt("item-check-interval", 1200); // 默认60秒
         effectCheckInterval = getConfig().getInt("effect-check-interval", 1200); // 默认60秒
+        prefix = getConfig().getString("prefix","[Xiprotection]");
+        debugModeSwitch = getConfig().getBoolean("debug",true);
     }
 
     private void initializeProtectionListener() {
@@ -176,7 +182,42 @@ public final class XiProtection extends JavaPlugin {
         }
     }
 
+    public void debugPrint(String text, int importance) {
+        if (debugModeSwitch) {
+            switch (importance) {
+                case 1:
+                    getLogger().info(prefix + text);
+                    break; // 添加 break 语句
+                case 2:
+                    getLogger().warning(prefix + text);
+                    break; // 添加 break 语句
+                case 3:
+                    getLogger().severe(prefix + text);
+                    break; // 添加 break 语句
+                default:
+                    getLogger().info(prefix + "Unknown importance level: " + importance); // 可选：处理未知重要性
+            }
+        }
+    }
+    private void loadLanguages() {
+        File languageFile = new File(getDataFolder(), "languages.yml");
+        if (!languageFile.exists()) {
+            saveResource("languages.yml", false); // 复制默认语言文件到数据文件夹
+            getLogger().info("语言文件已创建: " + languageFile.getAbsolutePath());
+        }
 
+        FileConfiguration languageConfig = YamlConfiguration.loadConfiguration(languageFile);
+        for (String key : languageConfig.getKeys(false)) {
+            languageMap.put(key, languageConfig.getString(key));
+        }
+
+        getLogger().info("已加载语言文件: " + languageFile.getAbsolutePath());
+    }
+
+    public String getLanguageText(String key) {
+        String text = languageMap.get(key);
+        return text != null ? ChatColor.translateAlternateColorCodes('&', text) : "未知语言键: " + key;
+    }
     public void reloadWorldConfigs() {
         // 注销旧的监听器
         HandlerList.unregisterAll(protectionListener);

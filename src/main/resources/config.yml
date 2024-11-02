@@ -1,6 +1,8 @@
 update-interval: 600 # 每30秒
 item-check-interval: 1200 # 每60秒
 effect-check-interval: 1200 # 每60秒
+prefix: "[XiProtection]"
+debug: true
 gui:
   world:
     world: GRASS_BLOCK

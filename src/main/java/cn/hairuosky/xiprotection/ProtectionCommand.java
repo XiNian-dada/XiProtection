@@ -1,15 +1,12 @@
 package cn.hairuosky.xiprotection;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 public class ProtectionCommand implements CommandExecutor {
 
@@ -147,17 +144,5 @@ public class ProtectionCommand implements CommandExecutor {
         sender.sendMessage("当前设置: " + newValue);
 
         return true;
-    }
-
-    private void openWorldSelectionMenu(Player player) {
-        Inventory inventory = Bukkit.createInventory(null, 27, "选择世界");
-
-        for (World world : Bukkit.getWorlds()) {
-            ItemStack item = new ItemStack(Material.GRASS_BLOCK);
-            item.getItemMeta().setDisplayName(world.getName()); // 设置物品名称为世界名称
-            inventory.addItem(item);
-        }
-
-        player.openInventory(inventory);
     }
 }
