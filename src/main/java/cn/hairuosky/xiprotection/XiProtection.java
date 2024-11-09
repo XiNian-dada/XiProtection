@@ -214,10 +214,13 @@ public final class XiProtection extends JavaPlugin {
         getLogger().info("已加载语言文件: " + languageFile.getAbsolutePath());
     }
 
-    public String getLanguageText(String key) {
+    public String getLanguageText(String key, String defaultValue) {
         String text = languageMap.get(key);
-        return text != null ? ChatColor.translateAlternateColorCodes('&', text) : "未知语言键: " + key;
+        String message = text != null ? text : defaultValue;
+        return ChatColor.translateAlternateColorCodes('&', prefix + message);
     }
+
+
     public void reloadWorldConfigs() {
         // 注销旧的监听器
         HandlerList.unregisterAll(protectionListener);

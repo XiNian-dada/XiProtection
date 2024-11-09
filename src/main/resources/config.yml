@@ -1,52 +1,118 @@
-update-interval: 600 # 每30秒
-item-check-interval: 1200 # 每60秒
-effect-check-interval: 1200 # 每60秒
+update-interval: 600 # 每10分钟
+item-check-interval: 1200 # 每20分钟
+effect-check-interval: 1200 # 每20分钟
 prefix: "[XiProtection]"
 debug: true
 gui:
   world:
     world: GRASS_BLOCK
     world_the_end: SNOWBALL
-    world_nether: diamond_sword
+    world_nether: DIAMOND_SWORD
   option:
-    anti-break: DIAMOND_PICKAXE
-    anti-break-name: "防止破坏"
-    anti-place: DIAMOND_PICKAXE
-    anti-place-name: "防止放置"
-    always-sun: GOLDEN_SWORD
-    always-sun-name: "永远晴天"
-    always-rain: WATER_BUCKET
-    always-rain-name: "永远下雨"
-    always-day: GOLDEN_SWORD
-    always-day-name: "永远白天"
-    always-night: GOLDEN_SWORD
-    always-night-name: "永远黑夜"
-    anti-fire: FIRE
-    anti-fire-name: "防止火灾"
-    anti-shear: SHEARS
-    anti-shear-name: "防止剪切"
-    keep-full-hunger: COOKED_BEEF
-    keep-full-hunger-name: "保持饥饿值"
-    anti-pvp: DIAMOND_SWORD
-    anti-pvp-name: "防止 PvP"
-    prevent-explosion: TNT
-    prevent-explosion-name: "防止爆炸"
-    keep-full-health: GOLDEN_APPLE
-    keep-full-health-name: "保持生命值"
-    prevent-treading: GRASS_BLOCK
-    prevent-treading-name: "防止踩踏"
-    prevent-throwables: ENDER_PEARL
-    prevent-throwables-name: "防止投掷物"
-    keep-items-enabled: CHEST
-    keep-items-enabled-name: "保持物品启用"
-    banned-commands-enabled: BARRIER
-    banned-commands-enabled-name: "禁止命令启用"
-    prevent-eating: COOKED_BEEF
-    prevent-eating-name: "防止吃食"
-    prevent-drinking: POTION
-    prevent-drinking-name: "防止饮水"
-    prevent-potion-effects-enabled: POTION
-    prevent-potion-effects-enabled-name: "防止药水效果"
-    keep-potion-effects-enabled: POTION
-    keep-potion-effects-enabled-name: "保持药水效果"
-
+    anti-break:
+      item: DIAMOND_PICKAXE
+      slot: 0
+      name: "&c防止破坏"  # 红色
+      function: "anti-break"
+    anti-place:
+      item: DIAMOND_PICKAXE
+      slot: 1
+      name: "&6防止放置"  # 黄色
+      function: "anti-place"
+    always-sun:
+      item: GOLDEN_SWORD
+      slot: 2
+      name: "&e永远晴天"  # 黄色
+      function: "always-sun"
+    always-rain:
+      item: WATER_BUCKET
+      slot: 3
+      name: "&9永远下雨"  # 蓝色
+      function: "always-rain"
+    always-day:
+      item: GOLDEN_SWORD
+      slot: 4
+      name: "&a永远白天"  # 绿色
+      function: "always-day"
+    always-night:
+      item: GOLDEN_SWORD
+      slot: 5
+      name: "&5永远黑夜"  # 紫色
+      function: "always-night"
+    anti-fire:
+      item: FIRE
+      slot: 6
+      name: "&4防止火灾"  # 深红色
+      function: "anti-fire"
+    anti-shear:
+      item: SHEARS
+      slot: 7
+      name: "&7防止剪切"  # 灰色
+      function: "anti-shear"
+    keep-full-hunger:
+      item: COOKED_BEEF
+      slot: 8
+      name: "&2保持饥饿值"  # 深绿色
+      function: "keep-full-hunger"
+    anti-pvp:
+      item: DIAMOND_SWORD
+      slot: 9
+      name: "&c防止 PvP"  # 红色
+      function: "anti-pvp"
+    prevent-explosion:
+      item: TNT
+      slot: 10
+      name: "&6防止爆炸"  # 黄色
+      function: "prevent-explosion"
+    keep-full-health:
+      item: GOLDEN_APPLE
+      slot: 11
+      name: "&d保持生命值"  # 粉色
+      function: "keep-full-health"
+    prevent-treading:
+      item: GRASS_BLOCK
+      slot: 12
+      name: "&2防止踩踏"  # 深绿色
+      function: "prevent-treading"
+    prevent-throwables:
+      item: ENDER_PEARL
+      slot: 13
+      name: "&b防止投掷物"  # 浅蓝色
+      function: "prevent-throwables"
+    keep-items-enabled:
+      item: CHEST
+      slot: 14
+      name: "&6保持物品启用"  # 黄色
+      function: "keep-items-enabled"
+    banned-commands-enabled:
+      item: BARRIER
+      slot: 15
+      name: "&8禁止命令启用"  # 黑色
+      function: "banned-commands-enabled"
+    prevent-eating:
+      item: COOKED_BEEF
+      slot: 16
+      name: "&f防止吃食"  # 白色
+      function: "prevent-eating"
+    prevent-drinking:
+      item: POTION
+      slot: 17
+      name: "&a防止饮水"  # 绿色
+      function: "prevent-drinking"
+    prevent-potion-effects-enabled:
+      item: POTION
+      slot: 18
+      name: "&9防止药水效果"  # 蓝色
+      function: "prevent-potion-effects-enabled"
+    keep-potion-effects-enabled:
+      item: POTION
+      slot: 19
+      name: "&d保持药水效果"  # 粉色
+      function: "keep-potion-effects-enabled"
+    decorations:
+      items: GRASS
+      name: "&2装饰"  # 绿色
+      slots:
+        - 20
+        - 21
+      function: "decorate"

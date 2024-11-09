@@ -207,7 +207,8 @@ public class ProtectionListener implements Listener {
                 } else {
                     // 对于非玩家实体，直接取消事件
                     event.setCancelled(true);
-                    plugin.getLogger().info(entity.getType() + " 尝试踩踏耕地。");
+                    //plugin.getLogger().info(entity.getType() + " 尝试踩踏耕地。");
+                    plugin.debugPrint(entity.getType() + "尝试踩踏耕地",1);
                 }
             }
         }

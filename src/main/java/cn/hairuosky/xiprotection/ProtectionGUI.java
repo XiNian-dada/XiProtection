@@ -1,8 +1,10 @@
 package cn.hairuosky.xiprotection;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,6 +13,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.List;
+import java.util.Objects;
 
 public class ProtectionGUI implements Listener {
 
@@ -81,41 +86,70 @@ public class ProtectionGUI implements Listener {
 
     private void openSettingsMenu(Player player, World world) {
         Inventory settingsInventory = Bukkit.createInventory(null, 27, "配置选项 - " + world.getName());
-
         FileConfiguration config = plugin.getConfig();
 
-        settingsInventory.setItem(0, createToggleItem(Material.getMaterial(config.getString("option.anti-break", "DIAMOND_PICKAXE")), config.getString("option.anti-break-name", "Anti Break"), getConfigValue(world, "anti-break")));
-        settingsInventory.setItem(1, createToggleItem(Material.getMaterial(config.getString("option.anti-place", "DIAMOND_PICKAXE")), config.getString("option.anti-place-name", "Anti Place"), getConfigValue(world, "anti-place")));
-        settingsInventory.setItem(2, createToggleItem(Material.getMaterial(config.getString("option.always-sun", "GOLDEN_SWORD")), config.getString("option.always-sun-name", "Always Sun"), getConfigValue(world, "always-sun")));
-        settingsInventory.setItem(3, createToggleItem(Material.getMaterial(config.getString("option.always-rain", "WATER_BUCKET")), config.getString("option.always-rain-name", "Always Rain"), getConfigValue(world, "always-rain")));
-        settingsInventory.setItem(4, createToggleItem(Material.getMaterial(config.getString("option.always-day", "GOLDEN_SWORD")), config.getString("option.always-day-name", "Always Day"), getConfigValue(world, "always-day")));
-        settingsInventory.setItem(5, createToggleItem(Material.getMaterial(config.getString("option.always-night", "GOLDEN_SWORD")), config.getString("option.always-night-name", "Always Night"), getConfigValue(world, "always-night")));
-        settingsInventory.setItem(6, createToggleItem(Material.getMaterial(config.getString("option.anti-fire", "FIRE")), config.getString("option.anti-fire-name", "Anti Fire"), getConfigValue(world, "anti-fire")));
-        settingsInventory.setItem(7, createToggleItem(Material.getMaterial(config.getString("option.anti-shear", "SHEARS")), config.getString("option.anti-shear-name", "Anti Shear"), getConfigValue(world, "anti-shear")));
-        settingsInventory.setItem(8, createToggleItem(Material.getMaterial(config.getString("option.keep-full-hunger", "COOKED_BEEF")), config.getString("option.keep-full-hunger-name", "Keep Full Hunger"), getConfigValue(world, "keep-full-hunger")));
-        settingsInventory.setItem(9, createToggleItem(Material.getMaterial(config.getString("option.anti-pvp", "DIAMOND_SWORD")), config.getString("option.anti-pvp-name", "Anti PvP"), getConfigValue(world, "anti-pvp")));
-        settingsInventory.setItem(10, createToggleItem(Material.getMaterial(config.getString("option.prevent-explosion", "TNT")), config.getString("option.prevent-explosion-name", "Prevent Explosion"), getConfigValue(world, "prevent-explosion")));
-        settingsInventory.setItem(11, createToggleItem(Material.getMaterial(config.getString("option.keep-full-health", "GOLDEN_APPLE")), config.getString("option.keep-full-health-name", "Keep Full Health"), getConfigValue(world, "keep-full-health")));
-        settingsInventory.setItem(12, createToggleItem(Material.getMaterial(config.getString("option.prevent-treading", "GRASS_BLOCK")), config.getString("option.prevent-treading-name", "Prevent Treading"), getConfigValue(world, "prevent-treading")));
-        settingsInventory.setItem(13, createToggleItem(Material.getMaterial(config.getString("option.prevent-throwables", "ENDER_PEARL")), config.getString("option.prevent-throwables-name", "Prevent Throwables"), getConfigValue(world, "prevent-throwables")));
-        settingsInventory.setItem(14, createToggleItem(Material.getMaterial(config.getString("option.keep-items-enabled", "CHEST")), config.getString("option.keep-items-enabled-name", "Keep Items Enabled"), getConfigValue(world, "keep-items-enabled")));
-        settingsInventory.setItem(15, createToggleItem(Material.getMaterial(config.getString("option.banned-commands-enabled", "BARRIER")), config.getString("option.banned-commands-enabled-name", "Banned Commands Enabled"), getConfigValue(world, "banned-commands-enabled")));
-        settingsInventory.setItem(16, createToggleItem(Material.getMaterial(config.getString("option.prevent-eating", "COOKED_BEEF")), config.getString("option.prevent-eating-name", "Prevent Eating"), getConfigValue(world, "prevent-eating")));
-        settingsInventory.setItem(17, createToggleItem(Material.getMaterial(config.getString("option.prevent-drinking", "POTION")), config.getString("option.prevent-drinking-name", "Prevent Drinking"), getConfigValue(world, "prevent-drinking")));
-        settingsInventory.setItem(18, createToggleItem(Material.getMaterial(config.getString("option.prevent-potion-effects-enabled", "POTION")), config.getString("option.prevent-potion-effects-enabled-name", "Prevent Potion Effects Enabled"), getConfigValue(world, "prevent-potion-effects-enabled")));
-        settingsInventory.setItem(19, createToggleItem(Material.getMaterial(config.getString("option.keep-potion-effects-enabled", "POTION")), config.getString("option.keep-potion-effects-enabled-name", "Keep Potion Effects Enabled"), getConfigValue(world, "keep-potion-effects-enabled")));
+        // 读取并设置功能项
+        for (String key : Objects.requireNonNull(config.getConfigurationSection("gui.option")).getKeys(false)) {
+            String itemPath = "gui.option." + key + ".item";
+            String namePath = "gui.option." + key + ".name";
+            int slot = config.getInt("gui.option." + key + ".slot", -1);  // 默认值为 -1
+            List<Integer> slots = config.getIntegerList("gui.option." + key + ".slots");  // 读取 slots 列表
+
+            Material material = Material.getMaterial(config.getString(itemPath, "BARRIER"));
+            String displayName = config.getString(namePath, key);
+            String function = config.getString("gui.option." + key + ".function", "");
+
+            // 转换颜色符号(&)为Minecraft的颜色代码
+            displayName = ChatColor.translateAlternateColorCodes('&', displayName);
+
+            // 如果是装饰物品，不显示开启/关闭状态
+            if (function.equals("decorate")) {
+                ItemStack itemStack = new ItemStack(material);
+                ItemMeta meta = itemStack.getItemMeta();
+                if (meta != null) {
+                    meta.setDisplayName(displayName);  // 保持原名称，不带 "开启/关闭"
+                    itemStack.setItemMeta(meta);
+                }
+
+                // 如果 slots 存在，填充多个位置
+                if (!slots.isEmpty()) {
+                    for (int s : slots) {
+                        settingsInventory.setItem(s, itemStack);
+                    }
+                } else if (slot != -1) {
+                    settingsInventory.setItem(slot, itemStack);
+                }
+            } else {
+                // 普通功能项，带上开启/关闭状态
+                ItemStack itemStack = createToggleItem(material, displayName, getConfigValue(world, key));
+
+                // 如果 slots 存在，填充多个位置
+                if (!slots.isEmpty()) {
+                    for (int s : slots) {
+                        settingsInventory.setItem(s, itemStack);
+                    }
+                } else if (slot != -1) {
+                    // 如果只有一个 slot，则填充单个位置
+                    settingsInventory.setItem(slot, itemStack);
+                }
+            }
+        }
 
         player.openInventory(settingsInventory);
     }
-
 
     private ItemStack createToggleItem(Material material, String name, boolean value) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            // 设置物品名称为功能名称加上状态
-            meta.setDisplayName(name + ": " + (value ? "开启" : "关闭"));
+            // 根据状态设置颜色和加粗样式
+            ChatColor color = value ? ChatColor.GREEN : ChatColor.RED;
+            String status = (value ? "开启" : "关闭");
+
+            // 设置加粗样式
+            meta.setDisplayName(name + ": " + color + ChatColor.BOLD + status);
+
             item.setItemMeta(meta); // 将 ItemMeta 应用到 ItemStack
         }
 
@@ -131,94 +165,74 @@ public class ProtectionGUI implements Listener {
     @EventHandler
     public void onSettingsInventoryClick(InventoryClickEvent event) {
         if (event.getView().getTitle().startsWith("配置选项 - ")) {
-            event.setCancelled(true);
+            event.setCancelled(true);  // 防止物品被移除
 
             Player player = (Player) event.getWhoClicked();
             String worldName = event.getView().getTitle().replace("配置选项 - ", "");
             World world = Bukkit.getWorld(worldName);
 
             if (world != null) {
-                toggleSetting(player, event.getSlot(), world);
+                ItemStack clickedItem = event.getCurrentItem();
+                if (clickedItem == null || clickedItem.getType() == Material.AIR) {
+                    return;  // 空点击则返回
+                }
+
+                ItemMeta meta = clickedItem.getItemMeta();
+                if (meta != null && meta.hasDisplayName()) {
+                    String itemName = meta.getDisplayName();
+
+                    // 从配置中获取 item 的 function
+                    String function = "";
+                    FileConfiguration config = plugin.getConfig();
+                    for (String key : Objects.requireNonNull(config.getConfigurationSection("gui.option")).getKeys(false)) {
+                        String name = config.getString("gui.option." + key + ".name");
+                        if (name != null && name.equals(itemName)) {
+                            function = config.getString("gui.option." + key + ".function", "");
+                            break;
+                        }
+                    }
+
+                    // 如果 function 是 "decorate"，则不执行任何操作
+                    if (function.equals("decorate")) {
+                        return;
+                    }
+
+                    // 否则继续执行正常的设置切换逻辑
+                    toggleSetting(player, event.getSlot(), world);
+                }
             }
         }
     }
 
     private void toggleSetting(Player player, int slot, World world) {
-        FileConfiguration config = plugin.getWorldConfig(world);
-        String setting;
+        FileConfiguration worldConfig = plugin.getWorldConfig(world);
+        FileConfiguration mainConfig = plugin.getConfig();
+        ConfigurationSection optionSection = mainConfig.getConfigurationSection("gui.option");
 
-        switch (slot) {
-            case 0:
-                setting = "anti-break";
-                break;
-            case 1:
-                setting = "anti-place";
-                break;
-            case 2:
-                setting = "always-sun";
-                break;
-            case 3:
-                setting = "always-rain";
-                break;
-            case 4:
-                setting = "always-day";
-                break;
-            case 5:
-                setting = "always-night";
-                break;
-            case 6:
-                setting = "anti-fire";
-                break;
-            case 7:
-                setting = "anti-shear";
-                break;
-            case 8:
-                setting = "keep-full-hunger";
-                break;
-            case 9:
-                setting = "anti-pvp";
-                break;
-            case 10:
-                setting = "prevent-explosion";
-                break;
-            case 11:
-                setting = "keep-full-health";
-                break;
-            case 12:
-                setting = "prevent-treading";
-                break;
-            case 13:
-                setting = "prevent-throwables";
-                break;
-            case 14:
-                setting = "keep-items-enabled";
-                break;
-            case 15:
-                setting = "banned-commands-enabled";
-                break;
-            case 16:
-                setting = "prevent-eating";
-                break;
-            case 17:
-                setting = "prevent-drinking";
-                break;
-            case 18:
-                setting = "prevent-potion-effects-enabled";
-                break;
-            case 19:
-                setting = "keep-potion-effects-enabled";
-                break;
-            default:
-                player.sendMessage("未知设置项！");
-                return;
+        if (optionSection == null) {
+            player.sendMessage("未找到配置节 'gui.option'。请检查 config.yml 文件。");
+            return;
         }
 
-        boolean currentValue = config.getBoolean("protect." + setting, false);
-        config.set("protect." + setting, !currentValue); // 切换值
-        plugin.saveWorldConfig(world); // 保存配置
-        player.sendMessage(setting + " 已设置为 " + (!currentValue ? "开启" : "关闭"));
-        // 重新打开设置菜单
-        openSettingsMenu(player, world);
+        // 遍历主配置文件中的 GUI 配置节
+        for (String key : optionSection.getKeys(false)) {
+            int configSlot = mainConfig.getInt("gui.option." + key + ".slot");
+
+            if (configSlot == slot) {
+                boolean currentValue = worldConfig.getBoolean("protect." + key, false);
+                worldConfig.set("protect." + key, !currentValue); // 切换值
+                plugin.saveWorldConfig(world); // 保存世界配置文件
+                player.sendMessage(key + " 已设置为 " + (!currentValue ? "开启" : "关闭"));
+                // 重新打开设置菜单
+                openSettingsMenu(player, world);
+                return;
+            }
+        }
+
+        player.sendMessage("未知设置项！");
     }
+
+
+
 
 }

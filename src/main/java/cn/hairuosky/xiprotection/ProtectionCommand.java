@@ -22,14 +22,16 @@ public class ProtectionCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         // 检查指令格式
         if (args.length < 1) {
-            sender.sendMessage("用法: /xiprotection <set|reload|editor> ...");
+            sender.sendMessage(plugin.getLanguageText("command-usage","用法： /xiprotection <set|reload|editor>"));
+            //sender.sendMessage("用法: /xiprotection <set|reload|editor> ...");
             return false;
         }
 
         if (args[0].equalsIgnoreCase("reload")) {
             // 重载插件
             plugin.reloadWorldConfigs();
-            sender.sendMessage("插件配置已重载。");
+            sender.sendMessage(plugin.getLanguageText("command-reload","插件已重载。"));
+            //sender.sendMessage("插件配置已重载。");
             return true;
         }
 
@@ -40,14 +42,16 @@ public class ProtectionCommand implements CommandExecutor {
                 protectionGUI.openWorldSelectionMenu(player); // 使用 ProtectionGUI 打开菜单
                 return true;
             } else {
-                sender.sendMessage("只有玩家可以使用此命令。");
+                sender.sendMessage(plugin.getLanguageText("command-only-player","只有玩家可以执行这个指令。"));
+                //sender.sendMessage("只有玩家可以使用此命令。");
                 return false;
             }
         }
 
         // 处理 set 指令
         if (args.length < 4 || !args[0].equalsIgnoreCase("set")) {
-            sender.sendMessage("用法: /xiprotection set <world> <setting> <value>");
+            //sender.sendMessage("用法: /xiprotection set <world> <setting> <value>");
+            sender.sendMessage(plugin.getLanguageText("command-usage-set","用法: /xiprotection set <world> <setting> <value>。"));
             return false;
         }
 
@@ -58,14 +62,16 @@ public class ProtectionCommand implements CommandExecutor {
         // 获取世界
         World world = Bukkit.getWorld(worldName);
         if (world == null) {
-            sender.sendMessage("未找到该世界: " + worldName);
+            sender.sendMessage(plugin.getLanguageText("command-world-not-found","未找到该世界 {world}。").replace("{world}",worldName));
+            //sender.sendMessage("未找到该世界: " + worldName);
             return false;
         }
 
         // 获取世界配置
         FileConfiguration config = plugin.getWorldConfig(world);
         if (config == null) {
-            sender.sendMessage("未找到该世界的配置: " + worldName);
+            //sender.sendMessage("未找到该世界的配置: " + worldName);
+            sender.sendMessage(plugin.getLanguageText("command-world-config-not-found","未找到该世界的配置：{world}。").replace("{world}",worldName));
             return false;
         }
 
@@ -132,16 +138,20 @@ public class ProtectionCommand implements CommandExecutor {
                 config.set("protect.keep-potion-effects-enabled", Boolean.parseBoolean(value));
                 break;
             default:
-                sender.sendMessage("未知设置: " + setting);
+                sender.sendMessage(plugin.getLanguageText("command-unknown-setting","未知设置：{setting}。").replace("{setting}",setting));
+                //sender.sendMessage("未知设置: " + setting);
                 return false;
         }
-        Bukkit.getLogger().info("正在保存配置到 " + world.getName());
+        Bukkit.getLogger().info(plugin.getLanguageText("command-save-settings","正在保存设置到 {world}。").replace("{world}",world.getName()));
+        //Bukkit.getLogger().info("正在保存配置到 " + world.getName());
         // 保存配置
         plugin.saveWorldConfig(world);
-        sender.sendMessage("已将 " + worldName + " 的 " + setting + " 设置为 " + value);
+        //sender.sendMessage("已将 " + worldName + " 的 " + setting + " 设置为 " + value);
+        sender.sendMessage(plugin.getLanguageText("command-save-done","已将 {world} 的 {setting} 设置为 {value}。").replace("{world}",worldName).replace("{setting}",setting).replace("{value}",value));
         FileConfiguration updatedConfig = plugin.getWorldConfig(world);
         boolean newValue = updatedConfig.getBoolean("protect." + setting);
-        sender.sendMessage("当前设置: " + newValue);
+        sender.sendMessage(plugin.getLanguageText("command-new-value","当前设置：{value}。").replace("{value}",String.valueOf(newValue)));
+        //sender.sendMessage("当前设置: " + newValue);
 
         return true;
     }
