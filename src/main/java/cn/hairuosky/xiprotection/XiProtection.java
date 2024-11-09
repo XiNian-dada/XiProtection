@@ -15,7 +15,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-//TODO 语言文件
+import java.util.Objects;
+
+//TODO 语言文件放出会乱码
+//TODO 测试呗
+//TODO 颜色显示似乎有些问题，前缀的颜色首先有很大问题，其次是有些文字的颜色应该被单独强调，不能整句都是一个颜色
 public final class XiProtection extends JavaPlugin {
     private ProtectionListener protectionListener;
     private final Map<World, FileConfiguration> worldConfigs = new HashMap<>();
@@ -30,13 +34,13 @@ public final class XiProtection extends JavaPlugin {
     private boolean debugModeSwitch;
     @Override
     public void onEnable() {
-        saveDefaultConfig(); // 创建默认配置文件
         loadLanguages(); // 加载语言文件
+        saveDefaultConfig(); // 创建默认配置文件
         loadGlobalConfig(); // 加载全局配置
         initializeProtectionListener();
         // 注册命令和补全
-        this.getCommand("xiprotection").setExecutor(new ProtectionCommand(this));
-        this.getCommand("xiprotection").setTabCompleter(new ProtectionTabCompleter(this));
+        Objects.requireNonNull(this.getCommand("xiprotection")).setExecutor(new ProtectionCommand(this));
+        Objects.requireNonNull(this.getCommand("xiprotection")).setTabCompleter(new ProtectionTabCompleter(this));
         createWorldConfigFiles();
         loadWorldConfigs(); // 加载世界配置
         scheduleTasks(); // 安排定时任务
@@ -106,18 +110,22 @@ public final class XiProtection extends JavaPlugin {
         File dataFolder = getDataFolder();
         if (!dataFolder.exists()) {
             dataFolder.mkdirs();
-            getLogger().info("数据文件夹创建成功: " + dataFolder.getAbsolutePath());
+            getLogger().info(getOnEnableText("datafolder-create","数据文件夹创建成功：{datafolder}！").replace("{datafolder}", dataFolder.getAbsolutePath()));
+            //getLogger().info("数据文件夹创建成功: " + dataFolder.getAbsolutePath());
         } else {
-            getLogger().info("数据文件夹已存在: " + dataFolder.getAbsolutePath());
+            getLogger().info(getOnEnableText("datafolder-exist","数据文件夹已存在：{datafolder}！").replace("{datafolder}", dataFolder.getAbsolutePath()));
+            //getLogger().info("数据文件夹已存在: " + dataFolder.getAbsolutePath());
         }
 
         // 创建世界配置文件的目录
         File worldsFolder = new File(dataFolder, "worlds");
         if (!worldsFolder.exists()) {
             worldsFolder.mkdirs();
-            getLogger().info("世界配置文件目录创建成功: " + worldsFolder.getAbsolutePath());
+            getLogger().info(getOnEnableText("worlds-folder-create","世界配置文件目录创建成功：{worlds-folder}！").replace("{worlds-folder}",worldsFolder.getAbsolutePath()));
+            //getLogger().info("世界配置文件目录创建成功: " + worldsFolder.getAbsolutePath());
         } else {
-            getLogger().info("世界配置文件目录已存在: " + worldsFolder.getAbsolutePath());
+            getLogger().info(getOnEnableText("worlds-folder-exist","世界配置文件目录已存在： {worlds-folder}！").replace("{worlds-folder}",worldsFolder.getAbsolutePath()));
+            //getLogger().info("世界配置文件目录已存在: " + worldsFolder.getAbsolutePath());
         }
 
         for (World world : Bukkit.getWorlds()) {
@@ -125,12 +133,15 @@ public final class XiProtection extends JavaPlugin {
             if (!worldConfigFile.exists()) {
                 try {
                     copyDefaultConfig(worldConfigFile);
-                    getLogger().info("已创建配置文件: " + worldConfigFile.getAbsolutePath());
+                    getLogger().info(getOnEnableText("world-config-create","已为世界 {world} 创建配置文件：{path}！").replace("{world}",world.getName()).replace("{path}", worldConfigFile.getAbsolutePath()));
+                    //getLogger().info("已创建配置文件: " + worldConfigFile.getAbsolutePath());
                 } catch (IOException e) {
-                    getLogger().severe("无法创建配置文件: " + world.getName() + ".yml，错误: " + e.getMessage());
+                    getLogger().info(getOnEnableText("world-config-cannot-create","无法为世界 {world} 创建配置文件，错误：{error}！").replace("{world}",world.getName()).replace("{error}", e.getMessage()));
+                    //getLogger().severe("无法创建配置文件: " + world.getName() + ".yml，错误: " + e.getMessage());
                 }
             } else {
-                getLogger().info("配置文件已存在: " + worldConfigFile.getAbsolutePath());
+                getLogger().info(getOnEnableText("world-config-exist","世界 {world} 的配置文件已存在，正在读取！").replace("{world}",world.getName()));
+                //getLogger().info("配置文件已存在: " + worldConfigFile.getAbsolutePath());
             }
         }
     }
@@ -140,9 +151,11 @@ public final class XiProtection extends JavaPlugin {
              InputStreamReader reader = new InputStreamReader(in)) {
             YamlConfiguration yamlConfig = YamlConfiguration.loadConfiguration(reader);
             yamlConfig.save(worldConfigFile);
-            getLogger().info("默认配置已复制到: " + worldConfigFile.getAbsolutePath());
+            getLogger().info(getOnEnableText("copy-config-success","默认配置已成功复制至 {worlds-folder}！").replace("{worlds-folder}",worldConfigFile.getAbsolutePath()));
+            //getLogger().info("默认配置已复制到: " + worldConfigFile.getAbsolutePath());
         } catch (IOException e) {
-            getLogger().severe("复制默认配置时出错: " + e.getMessage());
+            getLogger().severe(getOnEnableText("copy-config-fail","复制默认配置时出错 {error}！").replace("{error}",e.getMessage()));
+            //getLogger().severe("复制默认配置时出错: " + e.getMessage());
             throw e; // 重新抛出异常以便于上层调用处理
         }
     }
@@ -154,9 +167,11 @@ public final class XiProtection extends JavaPlugin {
             if (worldConfigFile.exists()) {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(worldConfigFile);
                 worldConfigs.put(world, config);
-                getLogger().info("已加载配置文件: " + worldConfigFile.getAbsolutePath());
+                getLogger().info(getOnEnableText("load-config-success","已成功加载 {world} 的配置文件！").replace("{world}",world.getName()));
+                //getLogger().info("已加载配置文件: " + worldConfigFile.getAbsolutePath());
             } else {
-                getLogger().warning("未找到配置文件: " + worldConfigFile.getAbsolutePath());
+                getLogger().warning(getOnEnableText("load-config-fail","未找到世界 {world} 的配置文件！").replace("{world}",world.getName()));
+                //getLogger().warning("未找到配置文件: " + worldConfigFile.getAbsolutePath());
             }
         }
     }
@@ -174,11 +189,14 @@ public final class XiProtection extends JavaPlugin {
             File file = new File(new File(getDataFolder(), "worlds"), world.getName() + ".yml");
             try {
                 config.save(file);
+                getLogger().info(getOnEnableText("save-config-success","成功保存世界 {world} 的配置文件！").replace("{world}",world.getName()));
             } catch (IOException e) {
-                getLogger().severe("无法保存配置文件: " + file.getName());
+                getLogger().severe(getOnEnableText("save-config-fail","无法保存世界 {world} 的配置文件！").replace("{world}",world.getName()));
+                //getLogger().severe("无法保存配置文件: " + file.getName());
             }
         } else {
-            getLogger().warning("未找到配置文件: " + world.getName());
+            getLogger().severe(getOnEnableText("config-not-found","未找到世界 {world} 的配置文件，请检查控制台和对应文件夹！").replace("{world}",world.getName()));
+            //getLogger().warning("未找到配置文件: " + world.getName());
         }
     }
 
@@ -203,7 +221,7 @@ public final class XiProtection extends JavaPlugin {
         File languageFile = new File(getDataFolder(), "languages.yml");
         if (!languageFile.exists()) {
             saveResource("languages.yml", false); // 复制默认语言文件到数据文件夹
-            getLogger().info("语言文件已创建: " + languageFile.getAbsolutePath());
+            getLogger().info("Languages file has been created: " + languageFile.getAbsolutePath());
         }
 
         FileConfiguration languageConfig = YamlConfiguration.loadConfiguration(languageFile);
@@ -211,7 +229,7 @@ public final class XiProtection extends JavaPlugin {
             languageMap.put(key, languageConfig.getString(key));
         }
 
-        getLogger().info("已加载语言文件: " + languageFile.getAbsolutePath());
+        getLogger().info("Loading languages file: " + languageFile.getAbsolutePath());
     }
 
     public String getLanguageText(String key, String defaultValue) {
@@ -220,7 +238,10 @@ public final class XiProtection extends JavaPlugin {
         return ChatColor.translateAlternateColorCodes('&', prefix + message);
     }
 
-
+    public String getOnEnableText(String key, String defaultValue) {
+        String text = languageMap.get(key);
+        return text != null ? text : defaultValue;
+    }
     public void reloadWorldConfigs() {
         // 注销旧的监听器
         HandlerList.unregisterAll(protectionListener);

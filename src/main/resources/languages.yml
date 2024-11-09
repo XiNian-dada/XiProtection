@@ -1,10 +1,47 @@
-command-usage: "用法： /xiprotection <set|reload|editor>。"
-command-usage-set: "用法: /xiprotection set <world> <setting> <value>。"
-command-reload: "插件已重载。"
-command-only-player: "只有玩家可以执行这个指令。"
-command-world-not-found: "未找到该世界：{world}。"
-command-world-config-not-found: "未找到该世界的配置：{world}。"
-command-unknown-setting: "未知设置：{setting}。"
-command-save-settings: "正在保存设置到 {world}。"
-command-save-done: "已将 {world} 的 {setting} 设置为 {value}。"
-command-new-value: "当前设置：{value}。"
+#####################
+#      Plugin       #
+#####################
+datafolder-create: "数据文件夹创建成功：{datafolder}！"
+datafolder-exist: "数据文件夹已存在：{datafolder}！"
+worlds-folder-create: "世界配置文件目录创建成功：{worlds-folder}！"
+worlds-folder-exist: "世界配置文件目录已存在： {worlds-folder}！"
+world-config-create: "已为世界 {world} 创建配置文件：{path}！"
+world-config-cannot-create: "无法为世界 {world} 创建配置文件，错误：{error}！"
+world-config-exist: "世界 {world} 的配置文件已存在，正在读取！"
+copy-config-success: "默认配置已成功复制至 {worlds-folder}！"
+copy-config-fail: "复制默认配置时出错 {error}！"
+load-config-success: "已成功加载 {world} 的配置文件！"
+load-config-fail: "未找到世界 {world} 的配置文件！"
+save-config-success: "成功保存世界 {world} 的配置文件！"
+save-config-fail: "无法保存世界 {world} 的配置文件！"
+config-not-found: "未找到世界 {world} 的配置文件，请检查控制台和对应文件夹！"
+
+#####################
+#      command      #
+#####################
+command-usage: "&4用法： /xiprotection <set|reload|editor>。"
+command-usage-set: "&4用法: /xiprotection set <world> <setting> <value>。"
+command-reload: "&4插件已重载。"
+command-only-player: "&4只有玩家可以执行这个指令。"
+command-world-not-found: "&4未找到该世界：{world}。"
+command-world-config-not-found: "&4未找到该世界的配置：{world}。"
+command-unknown-setting: "&4未知设置：{setting}。"
+command-save-settings: "&4正在保存设置到 {world}。"
+command-save-done: "&4已将 {world} 的 {setting} 设置为 {value}。"
+command-new-value: "&4当前设置：{value}。"
+
+#####################
+#     Listener      #
+#####################
+cannot-break: "&4你无法在这个世界破坏方块！"
+cannot-place: "&4你无法在这个世界放置方块！"
+time-settings-not-proper: "&4警告：世界设置为同时永远白天和永远黑夜，这会导致冲突。请检查配置！"
+weather-settings-not-proper: "&4警告：世界设置为同时永远下雨和永远晴天，这会导致冲突。请检查配置！"
+cannot-shear: "&4你不能在这个世界剪羊毛！"
+cannot-pvp: "&4你不能在这个世界中进行PVP！"
+cannot-tread-farmland: "&4你不能在这个世界中踩踏任何耕地！保护粮食好吗！"
+cannot-use-projectile: "&4你不能在这个世界中使用任何投掷物！"
+maintain-items: "&4你的背包中缺少了 {quantity} 个 {item}，已经为您自动添加！"
+cannot-use-specific-command: "&4你不能使用这个指令！"
+cannot-eat: "&4你不能在这个世界中吃东西！"
+cannot-drink: "&4你不能在这个世界中喝东西！"

@@ -42,7 +42,8 @@ public class ProtectionListener implements Listener {
 
         if (config != null && config.getBoolean("enable") && config.getBoolean("protect.anti-break")) {
             event.setCancelled(true);
-            player.sendMessage("你无法在这个世界破坏方块。");
+            player.sendMessage(plugin.getLanguageText("cannot-break","你无法在这个世界破坏方块！"));
+            //player.sendMessage("你无法在这个世界破坏方块。");
         }
     }
 
@@ -57,7 +58,8 @@ public class ProtectionListener implements Listener {
 
         if (config != null && config.getBoolean("enable") && config.getBoolean("protect.anti-place")) {
             event.setCancelled(true);
-            player.sendMessage("你无法在这个世界放置方块。");
+            player.sendMessage(plugin.getLanguageText("cannot-place","你无法在这个世界放置方块！"));
+            //player.sendMessage("你无法在这个世界放置方块。");
         }
     }
     @EventHandler
@@ -67,7 +69,6 @@ public class ProtectionListener implements Listener {
 
         if (config != null && config.getBoolean("enable") && config.getBoolean("protect.anti-fire")) {
             event.setCancelled(true);
-            event.getIgnitingEntity().sendMessage("你无法在这个世界引燃火焰。");
         }
     }
     // 定时检查并保持天气和时间状态
@@ -80,7 +81,8 @@ public class ProtectionListener implements Listener {
                 boolean alwaysNight = config.getBoolean("protect.always-night");
 
                 if (alwaysDay && alwaysNight) {
-                    notifyOps(world, "警告：世界设置为同时永远白天和永远黑夜，这会导致冲突。请检查配置。");
+                    //notifyOps(world, "警告：世界设置为同时永远白天和永远黑夜，这会导致冲突。请检查配置。");
+                    notifyOps(world, plugin.getLanguageText("time-settings-not-proper","警告：世界设置为同时永远白天和永远黑夜，这会导致冲突。请检查配置！"));
                 } else if (alwaysDay && !alwaysNight) {
                     world.setTime(6000); // 正午12点
                 } else if (alwaysNight && !alwaysDay) {
@@ -92,7 +94,7 @@ public class ProtectionListener implements Listener {
                 boolean alwaysSun = config.getBoolean("protect.always-sun");
 
                 if (alwaysRain && alwaysSun) {
-                    notifyOps(world, "警告：世界设置为同时永远下雨和永远晴天，这会导致冲突。请检查配置。");
+                    notifyOps(world, plugin.getLanguageText("weather-settings-not-proper","警告：世界设置为同时永远下雨和永远晴天，这会导致冲突。请检查配置！"));
                 } else if (alwaysRain && !alwaysSun) {
                     world.setStorm(true);
                 } else if (alwaysSun && !alwaysRain) {
@@ -112,7 +114,8 @@ public class ProtectionListener implements Listener {
         if (config != null && config.getBoolean("enable") && config.getBoolean("protect.anti-shear")) {
             event.setCancelled(true);
             if (event.getEntity().getType().equals(EntityType.SHEEP)) {
-                player.sendMessage("你无法在这个世界剪羊毛。");
+                player.sendMessage(plugin.getLanguageText("cannot-shear","你不能在这个世界剪羊毛！"));
+                //player.sendMessage("你无法在这个世界剪羊毛。");
             }
         }
     }
@@ -142,8 +145,9 @@ public class ProtectionListener implements Listener {
 
             if (config != null && config.getBoolean("enable") && config.getBoolean("protect.anti-pvp")) {
                 event.setCancelled(true);
-                attacker.sendMessage("在这个世界中禁止 PvP。");
-                victim.sendMessage("在这个世界中禁止 PvP。");
+                String text = plugin.getLanguageText("cannot-pvp","你不能在这个世界中进行PVP！");
+                attacker.sendMessage(text);
+                victim.sendMessage(text);
             }
         }
     }
@@ -203,7 +207,8 @@ public class ProtectionListener implements Listener {
                     }
                     // 取消事件并发送消息
                     event.setCancelled(true);
-                    player.sendMessage("在这个世界中，耕地不能被踩踏。");
+                    player.sendMessage(plugin.getLanguageText("cannot-tread-farmland","你不能在这个世界中踩踏任何耕地！保护粮食好吗！"));
+                    //player.sendMessage("在这个世界中，耕地不能被踩踏。");
                 } else {
                     // 对于非玩家实体，直接取消事件
                     event.setCancelled(true);
@@ -231,7 +236,8 @@ public class ProtectionListener implements Listener {
                 event.setCancelled(true);
                 if (event.getEntity().getShooter() instanceof Player) {
                     Player player = (Player) event.getEntity().getShooter();
-                    player.sendMessage("在这个世界中，禁止使用投掷物。");
+                    player.sendMessage(plugin.getLanguageText("cannot-use-projectile","你不能在这个世界中使用任何投掷物！"));
+                    //player.sendMessage("在这个世界中，禁止使用投掷物。");
                 }
             }
         }
@@ -260,7 +266,8 @@ public class ProtectionListener implements Listener {
                             ItemStack itemStack = new ItemStack(material, quantity);
                             if (!player.getInventory().contains(itemStack.getType(), quantity)) {
                                 player.getInventory().addItem(itemStack);
-                                player.sendMessage("你背包中缺少" + quantity + "个" + itemName + "，已为你添加。");
+                                player.sendMessage(plugin.getLanguageText("maintain-items","你的背包中缺少了 {quantity} 个 {item}，已经为您自动添加！").replace("{quantity}",String.valueOf(quantity)).replace("{item}",itemName));
+                                //player.sendMessage("你背包中缺少" + quantity + "个" + itemName + "，已为你添加。");
                             }
                         }
                     }
@@ -290,7 +297,8 @@ public class ProtectionListener implements Listener {
 
             for (String banned : bannedCommands) {
                 if (command.startsWith(banned.toLowerCase())) {
-                    player.sendMessage("你不能使用这个命令。"); // 提示信息
+                    player.sendMessage(plugin.getLanguageText("cannot-use-specific-command","你不能使用这个指令！"));
+                    //player.sendMessage("你不能使用这个命令。"); // 提示信息
                     event.setCancelled(true); // 取消命令执行
                     break;
                 }
@@ -308,7 +316,8 @@ public class ProtectionListener implements Listener {
             return; // 如果有权限，直接返回
         }
         if (config != null && config.getBoolean("enable") && config.getBoolean("protect.prevent-eating")) {
-            event.getPlayer().sendMessage("你不能吃东西。");
+            event.getPlayer().sendMessage(plugin.getLanguageText("cannot-eat","你不能在这个世界中吃东西！"));
+            //event.getPlayer().sendMessage("你不能吃东西。");
             event.setCancelled(true);
         }
     }
@@ -324,7 +333,8 @@ public class ProtectionListener implements Listener {
             return; // 如果有权限，直接返回
         }
         if (config != null && config.getBoolean("enable") && config.getBoolean("protect.prevent-drinking")) {
-            event.getPlayer().sendMessage("你不能喝东西。");
+            event.getPlayer().sendMessage(plugin.getLanguageText("cannot-drink","你不能在这个世界中喝东西！"));
+            //event.getPlayer().sendMessage("你不能喝东西。");
             event.setCancelled(true);
         }
     }
@@ -356,9 +366,9 @@ public class ProtectionListener implements Listener {
                     PotionEffectType effectType = PotionEffectType.getByName(effectName);
                     if (effectType != null && level != null) {
                         player.addPotionEffect(new PotionEffect(effectType, duration + 100, level - 1, true, false));
-                        player.sendMessage("已应用保持药水效果: " + effectName + " 等级: " + (level - 1));
+                        //player.sendMessage("已应用保持药水效果: " + effectName + " 等级: " + (level - 1));
                     } else {
-                        player.sendMessage("无法应用保持药水效果: " + effectName + "，请检查配置。");
+                        //player.sendMessage("无法应用保持药水效果: " + effectName + "，请检查配置。");
                     }
                 }
             }
@@ -372,12 +382,12 @@ public class ProtectionListener implements Listener {
                     // 仅移除在 preventEffectsSet 中的效果
                     if (isPrevented) {
                         player.removePotionEffect(potionEffect.getType());
-                        player.sendMessage("已移除药水效果: " + potionEffectName);
+                        //player.sendMessage("已移除药水效果: " + potionEffectName);
                     }
                 }
             }
         } else {
-            player.sendMessage("配置未找到，请检查插件设置。");
+            notifyOps(world,"配置未找到，请检查插件设置。");
         }
     }
 

@@ -1,7 +1,7 @@
-update-interval: 600 # 每10分钟
-item-check-interval: 1200 # 每20分钟
-effect-check-interval: 1200 # 每20分钟
-prefix: "[XiProtection]"
+update-interval: 600 # 每30s
+item-check-interval: 1200 # 每60s
+effect-check-interval: 1200 # 每60s
+prefix: "&7[&6XiProtection&7]"
 debug: true
 gui:
   world:
