@@ -10,14 +10,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-//TODO 语言文件放出会乱码
-//TODO 补充物品时只会提示其中的一个物品 而非全部
+
 /*
 * 测试记录：
 * Listeners & Functions 全部可用
@@ -30,7 +27,7 @@ import java.util.*;
 public final class XiProtection extends JavaPlugin {
     private ProtectionListener protectionListener;
     private final Map<World, FileConfiguration> worldConfigs = new HashMap<>();
-    private Map<String, String> languageMap = new HashMap<>();
+    private final Map<String, String> languageMap = new HashMap<>();
     private int updateInterval; // 更新间隔
     private int itemCheckInterval; // 物品检查间隔
     private int effectCheckInterval; // 效果检查间隔
@@ -50,7 +47,7 @@ public final class XiProtection extends JavaPlugin {
         initializeProtectionListener();
         // 注册命令和补全
         Objects.requireNonNull(this.getCommand("xiprotection")).setExecutor(new ProtectionCommand(this));
-        Objects.requireNonNull(this.getCommand("xiprotection")).setTabCompleter(new ProtectionTabCompleter(this));
+        Objects.requireNonNull(this.getCommand("xiprotection")).setTabCompleter(new ProtectionTabCompleter());
         createWorldConfigFiles();
         loadWorldConfigs(); // 加载世界配置
         scheduleTasks(); // 安排定时任务
@@ -121,53 +118,73 @@ public final class XiProtection extends JavaPlugin {
         // 创建数据文件夹
         File dataFolder = getDataFolder();
         if (!dataFolder.exists()) {
-            dataFolder.mkdirs();
-            getLogger().info(getOnEnableText("datafolder-create","数据文件夹创建成功：{datafolder}！").replace("{datafolder}", dataFolder.getAbsolutePath()));
-            //getLogger().info("数据文件夹创建成功: " + dataFolder.getAbsolutePath());
+            if (dataFolder.mkdirs()) {
+                getLogger().info(getOnEnableText("datafolder-create", "数据文件夹创建成功：{datafolder}！")
+                        .replace("{datafolder}", dataFolder.getAbsolutePath()));
+            } else {
+                getLogger().severe(getOnEnableText("datafolder-create-fail", "无法创建数据文件夹：{datafolder}！")
+                        .replace("{datafolder}", dataFolder.getAbsolutePath()));
+                return; // 如果创建失败，不继续执行
+            }
         } else {
-            getLogger().info(getOnEnableText("datafolder-exist","数据文件夹已存在：{datafolder}！").replace("{datafolder}", dataFolder.getAbsolutePath()));
-            //getLogger().info("数据文件夹已存在: " + dataFolder.getAbsolutePath());
+            getLogger().info(getOnEnableText("datafolder-exist", "数据文件夹已存在：{datafolder}！")
+                    .replace("{datafolder}", dataFolder.getAbsolutePath()));
         }
 
         // 创建世界配置文件的目录
         File worldsFolder = new File(dataFolder, "worlds");
         if (!worldsFolder.exists()) {
-            worldsFolder.mkdirs();
-            getLogger().info(getOnEnableText("worlds-folder-create","世界配置文件目录创建成功：{worlds-folder}！").replace("{worlds-folder}",worldsFolder.getAbsolutePath()));
-            //getLogger().info("世界配置文件目录创建成功: " + worldsFolder.getAbsolutePath());
+            if (worldsFolder.mkdirs()) {
+                getLogger().info(getOnEnableText("worlds-folder-create", "世界配置文件目录创建成功：{worlds-folder}！")
+                        .replace("{worlds-folder}", worldsFolder.getAbsolutePath()));
+            } else {
+                getLogger().severe(getOnEnableText("worlds-folder-create-fail", "无法创建世界配置文件目录：{worlds-folder}！")
+                        .replace("{worlds-folder}", worldsFolder.getAbsolutePath()));
+                return; // 如果创建失败，不继续执行
+            }
         } else {
-            getLogger().info(getOnEnableText("worlds-folder-exist","世界配置文件目录已存在： {worlds-folder}！").replace("{worlds-folder}",worldsFolder.getAbsolutePath()));
-            //getLogger().info("世界配置文件目录已存在: " + worldsFolder.getAbsolutePath());
+            getLogger().info(getOnEnableText("worlds-folder-exist", "世界配置文件目录已存在：{worlds-folder}！")
+                    .replace("{worlds-folder}", worldsFolder.getAbsolutePath()));
         }
 
+        // 为每个世界创建配置文件
         for (World world : Bukkit.getWorlds()) {
             File worldConfigFile = new File(worldsFolder, world.getName() + ".yml");
             if (!worldConfigFile.exists()) {
                 try {
                     copyDefaultConfig(worldConfigFile);
-                    getLogger().info(getOnEnableText("world-config-create","已为世界 {world} 创建配置文件：{path}！").replace("{world}",world.getName()).replace("{path}", worldConfigFile.getAbsolutePath()));
-                    //getLogger().info("已创建配置文件: " + worldConfigFile.getAbsolutePath());
+                    getLogger().info(getOnEnableText("world-config-create", "已为世界 {world} 创建配置文件：{path}！")
+                            .replace("{world}", world.getName())
+                            .replace("{path}", worldConfigFile.getAbsolutePath()));
                 } catch (IOException e) {
-                    getLogger().info(getOnEnableText("world-config-cannot-create","无法为世界 {world} 创建配置文件，错误：{error}！").replace("{world}",world.getName()).replace("{error}", e.getMessage()));
-                    //getLogger().severe("无法创建配置文件: " + world.getName() + ".yml，错误: " + e.getMessage());
+                    getLogger().severe(getOnEnableText("world-config-cannot-create", "无法为世界 {world} 创建配置文件，错误：{error}！")
+                            .replace("{world}", world.getName())
+                            .replace("{error}", e.getMessage()));
                 }
             } else {
-                getLogger().info(getOnEnableText("world-config-exist","世界 {world} 的配置文件已存在，正在读取！").replace("{world}",world.getName()));
-                //getLogger().info("配置文件已存在: " + worldConfigFile.getAbsolutePath());
+                getLogger().info(getOnEnableText("world-config-exist", "世界 {world} 的配置文件已存在，正在读取！")
+                        .replace("{world}", world.getName()));
             }
         }
     }
 
+
     private void copyDefaultConfig(File worldConfigFile) throws IOException {
-        try (InputStream in = getResource("world.yml");
-             InputStreamReader reader = new InputStreamReader(in)) {
+        InputStream in = getResource("world.yml");
+        if (in == null) {
+            String errorMsg = getOnEnableText("config-not-found", "默认配置文件 world.yml 未找到！");
+            getLogger().severe(errorMsg);
+            throw new FileNotFoundException(errorMsg);
+        }
+
+        try (InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
             YamlConfiguration yamlConfig = YamlConfiguration.loadConfiguration(reader);
             yamlConfig.save(worldConfigFile);
-            getLogger().info(getOnEnableText("copy-config-success","默认配置已成功复制至 {worlds-folder}！").replace("{worlds-folder}",worldConfigFile.getAbsolutePath()));
-            //getLogger().info("默认配置已复制到: " + worldConfigFile.getAbsolutePath());
+            getLogger().info(getOnEnableText("copy-config-success", "默认配置已成功复制至 {worlds-folder}！")
+                    .replace("{worlds-folder}", worldConfigFile.getAbsolutePath()));
         } catch (IOException e) {
-            getLogger().severe(getOnEnableText("copy-config-fail","复制默认配置时出错 {error}！").replace("{error}",e.getMessage()));
-            //getLogger().severe("复制默认配置时出错: " + e.getMessage());
+            getLogger().severe(getOnEnableText("copy-config-fail", "复制默认配置时出错 {error}！")
+                    .replace("{error}", e.getMessage()));
             throw e; // 重新抛出异常以便于上层调用处理
         }
     }

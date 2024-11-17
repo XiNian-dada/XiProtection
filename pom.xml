@@ -6,7 +6,7 @@
 
     <groupId>cn.hairuosky</groupId>
     <artifactId>XiProtection</artifactId>
-    <version>3.6</version>
+    <version>4.0</version>
     <packaging>jar</packaging>
 
     <name>XiProtection</name>

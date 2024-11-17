@@ -69,17 +69,16 @@ public class ProtectionGUI implements Listener {
 
             ItemMeta meta = currentItem.getItemMeta();
             if (meta != null) {
-                String worldName = meta.getDisplayName(); // 获取物品名称
+                String worldName = meta.getDisplayName();
 
-                if (worldName != null) { // 确保名称不为 null
-                    World world = Bukkit.getWorld(worldName);
-                    if (world != null) {
-                        openSettingsMenu(player, world);
-                    } else {
-                        player.sendMessage("未找到世界: " + worldName);
-                    }
+                World world = Bukkit.getWorld(worldName); // 如果世界名不存在，Bukkit.getWorld 会返回 null
+                if (world != null) {
+                    openSettingsMenu(player, world);
+                } else {
+                    player.sendMessage("未找到世界: " + worldName);
                 }
             }
+
         }
     }
 
@@ -96,6 +95,10 @@ public class ProtectionGUI implements Listener {
             List<Integer> slots = config.getIntegerList("gui.option." + key + ".slots");  // 读取 slots 列表
 
             Material material = Material.getMaterial(config.getString(itemPath, "BARRIER"));
+            if (material == null) {
+                material = Material.BARRIER; // 使用默认物品
+            }
+
             String displayName = ChatColor.translateAlternateColorCodes('&',config.getString(namePath, key));
             String function = config.getString("gui.option." + key + ".function", "");
 

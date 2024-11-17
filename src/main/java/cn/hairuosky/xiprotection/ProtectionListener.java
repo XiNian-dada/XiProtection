@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -26,7 +27,6 @@ import java.util.Set;
 
 public class ProtectionListener implements Listener {
     private final XiProtection plugin;
-    private int duration;
 
     public ProtectionListener(XiProtection plugin) {
         this.plugin = plugin;
@@ -81,11 +81,13 @@ public class ProtectionListener implements Listener {
                 boolean alwaysNight = config.getBoolean("protect.always-night");
 
                 if (alwaysDay && alwaysNight) {
-                    //notifyOps(world, "警告：世界设置为同时永远白天和永远黑夜，这会导致冲突。请检查配置。");
-                    notifyOps(world, plugin.getLanguageText("time-settings-not-proper","警告：世界设置为同时永远白天和永远黑夜，这会导致冲突。请检查配置！"));
-                } else if (alwaysDay && !alwaysNight) {
+                    notifyOps(world, plugin.getLanguageText(
+                            "time-settings-not-proper",
+                            "警告：世界设置为同时永远白天和永远黑夜，这会导致冲突。请检查配置！"
+                    ));
+                } else if (alwaysDay) {
                     world.setTime(6000); // 正午12点
-                } else if (alwaysNight && !alwaysDay) {
+                } else if (alwaysNight) {
                     world.setTime(18000); // 午夜12点
                 }
 
@@ -94,15 +96,19 @@ public class ProtectionListener implements Listener {
                 boolean alwaysSun = config.getBoolean("protect.always-sun");
 
                 if (alwaysRain && alwaysSun) {
-                    notifyOps(world, plugin.getLanguageText("weather-settings-not-proper","警告：世界设置为同时永远下雨和永远晴天，这会导致冲突。请检查配置！"));
-                } else if (alwaysRain && !alwaysSun) {
-                    world.setStorm(true);
-                } else if (alwaysSun && !alwaysRain) {
-                    world.setStorm(false);
+                    notifyOps(world, plugin.getLanguageText(
+                            "weather-settings-not-proper",
+                            "警告：世界设置为同时永远下雨和永远晴天，这会导致冲突。请检查配置！"
+                    ));
+                } else if (alwaysRain) {
+                    world.setStorm(true); // 设置为下雨
+                } else if (alwaysSun) {
+                    world.setStorm(false); // 设置为晴天
                 }
             }
         }
     }
+
     @EventHandler
     public void onShear(PlayerShearEntityEvent event) {
         Player player = event.getPlayer();
@@ -169,11 +175,22 @@ public class ProtectionListener implements Listener {
             FileConfiguration config = plugin.getWorldConfig(world);
 
             // 权限检查
-            if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.health")) return;
+            if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.health")) {
+                return; // 如果有权限，直接返回
+            }
 
+            // 检查配置
             if (config != null && config.getBoolean("enable") && config.getBoolean("protect.keep-full-health")) {
                 event.setCancelled(true); // 取消伤害
-                player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()); // 恢复满生命值
+
+                // 安全地获取最大生命值
+                AttributeInstance healthAttribute = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                if (healthAttribute != null) {
+                    player.setHealth(healthAttribute.getValue()); // 恢复满生命值
+                } else {
+                    plugin.getLogger().warning("Player " + player.getName() + " does not have a GENERIC_MAX_HEALTH attribute.");
+                    player.setHealth(20.0); // 回退到默认值（20.0是Minecraft默认最大生命值）
+                }
             }
         }
     }
@@ -221,27 +238,29 @@ public class ProtectionListener implements Listener {
 
     @EventHandler
     public void onProjectileLaunch(ProjectileLaunchEvent event) {
+        // 仅检查特定类型的投掷物
         if (event.getEntity() instanceof ThrownPotion || event.getEntity() instanceof Snowball) {
             World world = event.getEntity().getWorld();
             FileConfiguration config = plugin.getWorldConfig(world);
 
-            // 权限检查
-            if (event.getEntity().getShooter() instanceof Player &&
-                    ((Player) event.getEntity().getShooter()).hasPermission("xiprotection.bypass.*") ||
-                    ((Player) event.getEntity().getShooter()).hasPermission("xiprotection.bypass.throwables")) {
-                return; // 如果有权限，直接返回
-            }
+            // 检查投掷物的射手是否是玩家
+            if (event.getEntity().getShooter() instanceof Player) {
+                Player player = (Player) event.getEntity().getShooter();
 
-            if (config != null && config.getBoolean("enable") && config.getBoolean("protect.prevent-throwables")) {
-                event.setCancelled(true);
-                if (event.getEntity().getShooter() instanceof Player) {
-                    Player player = (Player) event.getEntity().getShooter();
-                    player.sendMessage(plugin.getLanguageText("cannot-use-projectile","你不能在这个世界中使用任何投掷物！"));
-                    //player.sendMessage("在这个世界中，禁止使用投掷物。");
+                // 权限检查
+                if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.throwables")) {
+                    return; // 如果有权限，直接返回
+                }
+
+                // 检查配置并取消事件
+                if (config != null && config.getBoolean("enable") && config.getBoolean("protect.prevent-throwables")) {
+                    event.setCancelled(true);
+                    player.sendMessage(plugin.getLanguageText("cannot-use-projectile", "你不能在这个世界中使用任何投掷物！"));
                 }
             }
         }
     }
+
 
     void maintainItems(Player player) {
         World world = player.getWorld();
@@ -255,34 +274,33 @@ public class ProtectionListener implements Listener {
         if (config != null && config.getBoolean("enable") && config.getBoolean("protect.keep-items-enabled")) {
             List<Map<?, ?>> itemsToKeep = config.getMapList("protect.keep-items"); // 获取物品列表
 
-            if (itemsToKeep != null) { // 确保 itemsToKeep 不是 null
-                for (Map<?, ?> item : itemsToKeep) {
-                    String itemName = (String) item.get("item");
-                    Integer quantity = (Integer) item.get("quantity"); // 使用 Integer 以处理 null
+            for (Map<?, ?> item : itemsToKeep) {
+                String itemName = (String) item.get("item");
+                Integer quantity = (Integer) item.get("quantity"); // 使用 Integer 以处理 null
 
-                    if (itemName != null && quantity != null) {
-                        Material material = Material.getMaterial(itemName);
-                        if (material != null) {
-                            // 检查当前玩家的背包中是否缺少物品
-                            int currentQuantity = getItemCount(player, material);
-                            if (currentQuantity < quantity) {
-                                int missingQuantity = quantity - currentQuantity;
-                                ItemStack itemStack = new ItemStack(material, missingQuantity);
-                                player.getInventory().addItem(itemStack);
+                if (itemName != null && quantity != null) {
+                    Material material = Material.getMaterial(itemName);
+                    if (material != null) {
+                        // 检查当前玩家的背包中是否缺少物品
+                        int currentQuantity = getItemCount(player, material);
+                        if (currentQuantity < quantity) {
+                            int missingQuantity = quantity - currentQuantity;
+                            ItemStack itemStack = new ItemStack(material, missingQuantity);
+                            player.getInventory().addItem(itemStack);
 
-                                // 替换占位符并发送消息
-                                player.sendMessage(plugin.getLanguageText(
-                                                "maintain-items",
-                                                "你的背包中缺少了 {quantity} 个 {item}，已经为您自动添加！")
-                                        .replace("{quantity}", String.valueOf(missingQuantity))
-                                        .replace("{item}", itemName));
-                            }
+                            // 替换占位符并发送消息
+                            player.sendMessage(plugin.getLanguageText(
+                                            "maintain-items",
+                                            "你的背包中缺少了 {quantity} 个 {item}，已经为您自动添加！")
+                                    .replace("{quantity}", String.valueOf(missingQuantity))
+                                    .replace("{item}", itemName));
                         }
                     }
                 }
             }
         }
     }
+
 
     // 辅助方法：统计背包中某种物品的数量
     private int getItemCount(Player player, Material material) {
@@ -417,7 +435,6 @@ public class ProtectionListener implements Listener {
             plugin.getLogger().info("Potion effects settings: preventEffectsEnabled=" + preventEffectsEnabled + ", keepEffectsEnabled=" + keepEffectsEnabled);
 
             Set<String> preventEffectsSet = new HashSet<>(config.getStringList("protect.prevent-potion-effects"));
-            Set<String> keepEffectsSet = new HashSet<>();
 
             // 日志：记录屏蔽效果列表
             plugin.getLogger().info("Effects to prevent: " + preventEffectsSet);
@@ -430,8 +447,6 @@ public class ProtectionListener implements Listener {
                 for (Map<?, ?> effectMap : keepEffectsList) {
                     String effectName = (String) effectMap.get("effect");
                     Integer level = (Integer) effectMap.get("level");
-
-                    keepEffectsSet.add(effectName);
 
                     // 添加药水效果
                     PotionEffectType effectType = PotionEffectType.getByName(effectName);
