@@ -8,6 +8,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class ProtectionCommand implements CommandExecutor {
 
     private final XiProtection plugin;
@@ -47,6 +52,52 @@ public class ProtectionCommand implements CommandExecutor {
                 return false;
             }
         }
+        if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("remove")) {
+            if (args.length < 3) {
+                sender.sendMessage(plugin.getLanguageText("command-usage-add-remove", "用法: /xiprotection <add|remove> <world> <setting> [details]"));
+                return false;
+            }
+
+            String action = args[0]; // "add" 或 "remove"
+            String worldName = args[1];
+            String setting = args[2];
+
+            // 获取世界
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) {
+                sender.sendMessage(plugin.getLanguageText("command-world-not-found", "未找到该世界 {world}。").replace("{world}", worldName));
+                return false;
+            }
+
+            // 获取世界配置
+            FileConfiguration config = plugin.getWorldConfig(world);
+            if (config == null) {
+                sender.sendMessage(plugin.getLanguageText("command-world-config-not-found", "未找到该世界的配置：{world}。").replace("{world}", worldName));
+                return false;
+            }
+
+            switch (setting.toLowerCase()) {
+                case "keep-potion-effects":
+                    handlePotionEffectModification(config, sender, args, action, "keep-potion-effects");
+                    break;
+                case "prevent-potion-effects":
+                    handlePotionEffectModification(config, sender, args, action, "prevent-potion-effects");
+                    break;
+                case "keep-items":
+                    handleItemModification(config, sender, args, action);
+                    break;
+                default:
+                    sender.sendMessage(plugin.getLanguageText("command-unknown-setting", "未知设置：{setting}。").replace("{setting}", setting));
+                    return false;
+            }
+
+            // 保存配置
+            plugin.saveWorldConfig(world);
+            sender.sendMessage(plugin.getLanguageText("command-save-done", "已更新 {world} 的 {setting} 设置。")
+                    .replace("{world}", worldName).replace("{setting}", setting));
+            return true;
+        }
+
 
         // 处理 set 指令
         if (args.length < 4 || !args[0].equalsIgnoreCase("set")) {
@@ -77,6 +128,8 @@ public class ProtectionCommand implements CommandExecutor {
 
         // 设置值
         switch (setting.toLowerCase()) {
+            case "enable":
+                config.set("enable", Boolean.parseBoolean(value));
             case "anti-break":
                 config.set("protect.anti-break", Boolean.parseBoolean(value));
                 break;
@@ -155,4 +208,127 @@ public class ProtectionCommand implements CommandExecutor {
 
         return true;
     }
+
+//TODO 以下的操作的语言文件还没有写出去
+    private void handlePotionEffectModification(FileConfiguration config, CommandSender sender, String[] args, String action, String setting) {
+        if (args.length < 4) {
+            sender.sendMessage(plugin.getLanguageText("command-usage-potion", "用法: /xiprotection <add|remove> <world> " + setting + " <effect> [level]"));
+            return;
+        }
+
+        String effect = args[3].toUpperCase(); // 药水效果名称
+        String fullPath = "protect." + setting; // 操作路径
+
+        if (action.equalsIgnoreCase("add") && setting.equals("keep-potion-effects")) {
+            if (args.length < 5) {
+                sender.sendMessage(plugin.getLanguageText("command-usage-potion-level", "用法: /xiprotection add <world> keep-potion-effects <effect> <level>"));
+                return;
+            }
+
+            int level = Integer.parseInt(args[4]);
+
+            // 获取配置中的列表
+            List<Map<String, Object>> effects = new ArrayList<>();
+            for (Object obj : config.getList(fullPath, new ArrayList<>())) {
+                if (obj instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> map = (Map<String, Object>) obj;
+                    effects.add(map);
+                }
+            }
+
+            // 添加新效果
+            Map<String, Object> newEffect = new HashMap<>();
+            newEffect.put("effect", effect);
+            newEffect.put("level", level);
+            effects.add(newEffect);
+            config.set(fullPath, effects);
+
+            sender.sendMessage(plugin.getLanguageText("command-add-potion", "已添加 {effect} 效果（等级 {level}）到 {setting}。")
+                    .replace("{effect}", effect).replace("{level}", String.valueOf(level)).replace("{setting}", setting));
+        } else if (action.equalsIgnoreCase("add")) {
+            // 处理 prevent-potion-effects
+            List<String> effects = config.getStringList(fullPath);
+            effects.add(effect);
+            config.set(fullPath, effects);
+
+            sender.sendMessage(plugin.getLanguageText("command-add-potion", "已添加 {effect} 到 {setting}。")
+                    .replace("{effect}", effect).replace("{setting}", setting));
+        } else if (action.equalsIgnoreCase("remove")) {
+            if (setting.equals("keep-potion-effects")) {
+                // 获取配置中的列表
+                List<Map<String, Object>> effects = new ArrayList<>();
+                for (Object obj : config.getList(fullPath, new ArrayList<>())) {
+                    if (obj instanceof Map) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> map = (Map<String, Object>) obj;
+                        effects.add(map);
+                    }
+                }
+
+                // 移除效果
+                effects.removeIf(e -> effect.equalsIgnoreCase((String) e.get("effect")));
+                config.set(fullPath, effects);
+            } else {
+                // 处理 prevent-potion-effects
+                List<String> effects = config.getStringList(fullPath);
+                effects.remove(effect);
+                config.set(fullPath, effects);
+            }
+
+            sender.sendMessage(plugin.getLanguageText("command-remove-potion", "已从 {setting} 移除 {effect}。")
+                    .replace("{effect}", effect).replace("{setting}", setting));
+        }
+    }
+
+
+    private void handleItemModification(FileConfiguration config, CommandSender sender, String[] args, String action) {
+        if (args.length < 5) {
+            sender.sendMessage(plugin.getLanguageText("command-usage-items", "用法: /xiprotection <add|remove> <world> keep-items <item> <quantity>"));
+            return;
+        }
+
+        String item = args[3].toUpperCase();
+        int quantity = Integer.parseInt(args[4]);
+        String fullPath = "protect.keep-items";
+
+        if (action.equalsIgnoreCase("add")) {
+            // 获取配置中的列表
+            List<Map<String, Object>> items = new ArrayList<>();
+            for (Object obj : config.getList(fullPath, new ArrayList<>())) {
+                if (obj instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> map = (Map<String, Object>) obj;
+                    items.add(map);
+                }
+            }
+
+            // 添加新物品
+            Map<String, Object> newItem = new HashMap<>();
+            newItem.put("item", item);
+            newItem.put("quantity", quantity);
+            items.add(newItem);
+            config.set(fullPath, items);
+
+            sender.sendMessage(plugin.getLanguageText("command-add-item", "已添加 {item}（数量 {quantity}）到 keep-items。")
+                    .replace("{item}", item).replace("{quantity}", String.valueOf(quantity)));
+        } else if (action.equalsIgnoreCase("remove")) {
+            // 获取配置中的列表
+            List<Map<String, Object>> items = new ArrayList<>();
+            for (Object obj : config.getList(fullPath, new ArrayList<>())) {
+                if (obj instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> map = (Map<String, Object>) obj;
+                    items.add(map);
+                }
+            }
+
+            // 移除物品
+            items.removeIf(i -> item.equalsIgnoreCase((String) i.get("item")));
+            config.set(fullPath, items);
+
+            sender.sendMessage(plugin.getLanguageText("command-remove-item", "已从 keep-items 移除 {item}。").replace("{item}", item));
+        }
+    }
+
 }

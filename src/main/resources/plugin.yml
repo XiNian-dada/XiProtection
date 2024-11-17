@@ -6,7 +6,7 @@ author: XiNian_dada
 commands:
   xiprotection:
     description: "插件主指令"
-    usage: "/<command> <set|reload|editor> ..."
+    usage: "/<command> <set|reload|editor|add|remove> ..."
     permission: xiprotection.command.*
 permissions:
   xiprotection.bypass.*:

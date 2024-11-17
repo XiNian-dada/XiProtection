@@ -30,6 +30,7 @@ command-save-settings: "&4正在保存设置到 {world}。"
 command-save-done: "&4已将 {world} 的 {setting} 设置为 {value}。"
 command-new-value: "&4当前设置：{value}。"
 
+
 #####################
 #     Listener      #
 #####################
