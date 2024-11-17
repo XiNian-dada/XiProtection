@@ -96,7 +96,7 @@ public class ProtectionGUI implements Listener {
             List<Integer> slots = config.getIntegerList("gui.option." + key + ".slots");  // 读取 slots 列表
 
             Material material = Material.getMaterial(config.getString(itemPath, "BARRIER"));
-            String displayName = config.getString(namePath, key);
+            String displayName = ChatColor.translateAlternateColorCodes('&',config.getString(namePath, key));
             String function = config.getString("gui.option." + key + ".function", "");
 
             // 转换颜色符号(&)为Minecraft的颜色代码

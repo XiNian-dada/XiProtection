@@ -2,6 +2,7 @@ package cn.hairuosky.xiprotection;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -13,13 +14,19 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 //TODO 语言文件放出会乱码
-//TODO 测试呗
-//TODO 颜色显示似乎有些问题，前缀的颜色首先有很大问题，其次是有些文字的颜色应该被单独强调，不能整句都是一个颜色
+//TODO 补充物品时只会提示其中的一个物品 而非全部
+/*
+* 测试记录：
+* Listeners & Functions 全部可用
+* Commands 可用
+*
+*
+*
+*
+* */
 public final class XiProtection extends JavaPlugin {
     private ProtectionListener protectionListener;
     private final Map<World, FileConfiguration> worldConfigs = new HashMap<>();
@@ -32,11 +39,14 @@ public final class XiProtection extends JavaPlugin {
     private int effectCheckTaskId;
     public String prefix;
     private boolean debugModeSwitch;
+    private Set<Material> foodItems;
+    private Set<Material> drinkItems;
     @Override
     public void onEnable() {
         loadLanguages(); // 加载语言文件
         saveDefaultConfig(); // 创建默认配置文件
         loadGlobalConfig(); // 加载全局配置
+
         initializeProtectionListener();
         // 注册命令和补全
         Objects.requireNonNull(this.getCommand("xiprotection")).setExecutor(new ProtectionCommand(this));
@@ -50,8 +60,9 @@ public final class XiProtection extends JavaPlugin {
         updateInterval = getConfig().getInt("update-interval", 600); // 默认30秒
         itemCheckInterval = getConfig().getInt("item-check-interval", 1200); // 默认60秒
         effectCheckInterval = getConfig().getInt("effect-check-interval", 1200); // 默认60秒
-        prefix = getConfig().getString("prefix","[Xiprotection]");
+        prefix = ChatColor.translateAlternateColorCodes('&',getConfig().getString("prefix","[Xiprotection]"));
         debugModeSwitch = getConfig().getBoolean("debug",true);
+        loadConsumablesFromConfig();
     }
 
     private void initializeProtectionListener() {
@@ -88,6 +99,7 @@ public final class XiProtection extends JavaPlugin {
     private void checkAllPlayersEffects() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             protectionListener.handlePotionEffects(player);
+            getLogger().info("开始执行药水操作");
         }
     }
 
@@ -250,12 +262,45 @@ public final class XiProtection extends JavaPlugin {
 
         // 重新加载全局配置
         loadGlobalConfig();
-
+        loadLanguages();
         // 重新注册监听器
         protectionListener = new ProtectionListener(this);
         Bukkit.getPluginManager().registerEvents(protectionListener, this);
 
         // 重新启用定时任务
         scheduleTasks();
+    }
+    private void loadConsumablesFromConfig() {
+        foodItems = new HashSet<>();
+        drinkItems = new HashSet<>();
+
+        List<String> foodList = getConfig().getStringList("consumables.food");
+        List<String> drinkList = getConfig().getStringList("consumables.drink");
+
+        for (String item : foodList) {
+            Material material = Material.matchMaterial(item.toUpperCase());
+            if (material != null) {
+                foodItems.add(material);
+            } else {
+                getLogger().warning("无效的食物物品类型: " + item);
+            }
+        }
+
+        for (String item : drinkList) {
+            Material material = Material.matchMaterial(item.toUpperCase());
+            if (material != null) {
+                drinkItems.add(material);
+            } else {
+                getLogger().warning("无效的饮品物品类型: " + item);
+            }
+        }
+    }
+
+    public boolean isFood(Material material) {
+        return foodItems.contains(material);
+    }
+
+    public boolean isDrink(Material material) {
+        return drinkItems.contains(material);
     }
 }

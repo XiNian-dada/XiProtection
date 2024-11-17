@@ -116,3 +116,25 @@ gui:
         - 20
         - 21
       function: "decorate"
+consumables:
+  food:
+    - APPLE
+    - BREAD
+    - COOKED_BEEF
+    - CARROT
+    - BAKED_POTATO
+    - COOKED_CHICKEN
+    - COOKED_MUTTON
+    - COOKED_RABBIT
+    - COOKED_PORKCHOP
+    - MELON_SLICE
+    - PUMPKIN_PIE
+    - GOLDEN_APPLE
+    - STEAK
+    - COOKIE
+    - BEETROOT
+    - BEETROOT_SOUP
+    - MUSHROOM_STEW
+  drink:
+    - POTION
+    - MILK_BUCKET

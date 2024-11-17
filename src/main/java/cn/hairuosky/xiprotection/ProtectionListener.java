@@ -263,11 +263,19 @@ public class ProtectionListener implements Listener {
                     if (itemName != null && quantity != null) {
                         Material material = Material.getMaterial(itemName);
                         if (material != null) {
-                            ItemStack itemStack = new ItemStack(material, quantity);
-                            if (!player.getInventory().contains(itemStack.getType(), quantity)) {
+                            // 检查当前玩家的背包中是否缺少物品
+                            int currentQuantity = getItemCount(player, material);
+                            if (currentQuantity < quantity) {
+                                int missingQuantity = quantity - currentQuantity;
+                                ItemStack itemStack = new ItemStack(material, missingQuantity);
                                 player.getInventory().addItem(itemStack);
-                                player.sendMessage(plugin.getLanguageText("maintain-items","你的背包中缺少了 {quantity} 个 {item}，已经为您自动添加！").replace("{quantity}",String.valueOf(quantity)).replace("{item}",itemName));
-                                //player.sendMessage("你背包中缺少" + quantity + "个" + itemName + "，已为你添加。");
+
+                                // 替换占位符并发送消息
+                                player.sendMessage(plugin.getLanguageText(
+                                                "maintain-items",
+                                                "你的背包中缺少了 {quantity} 个 {item}，已经为您自动添加！")
+                                        .replace("{quantity}", String.valueOf(missingQuantity))
+                                        .replace("{item}", itemName));
                             }
                         }
                     }
@@ -275,6 +283,18 @@ public class ProtectionListener implements Listener {
             }
         }
     }
+
+    // 辅助方法：统计背包中某种物品的数量
+    private int getItemCount(Player player, Material material) {
+        int count = 0;
+        for (ItemStack itemStack : player.getInventory()) {
+            if (itemStack != null && itemStack.getType() == material) {
+                count += itemStack.getAmount();
+            }
+        }
+        return count;
+    }
+
 
     @EventHandler
     public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
@@ -306,6 +326,37 @@ public class ProtectionListener implements Listener {
         }
     }
     @EventHandler
+    public void onPlayerConsume(PlayerItemConsumeEvent event) {
+        ItemStack item = event.getItem();
+        Material material = item.getType();
+
+        // 判断是吃东西还是喝东西
+        if (plugin.isFood(material)) {
+            handleConsume(event, "eating", "cannot-eat", plugin.getLanguageText("cannot-eat","你不能在这个世界中吃东西！"), "protect.prevent-eating");
+        } else if (plugin.isDrink(material)) {
+            handleConsume(event, "drinking", "cannot-drink", plugin.getLanguageText("cannot-drink","你不能在这个世界中喝东西！"), "protect.prevent-drinking");
+        }
+    }
+
+    private void handleConsume(PlayerItemConsumeEvent event, String action, String langKey, String defaultMsg, String configKey) {
+        Player player = event.getPlayer();
+        World world = player.getWorld();
+        FileConfiguration config = plugin.getWorldConfig(world);
+
+        // 权限检查
+        if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass." + action)) {
+            return; // 如果有权限，直接返回
+        }
+
+        // 检查配置并取消事件
+        if (config != null && config.getBoolean("enable") && config.getBoolean(configKey)) {
+            player.sendMessage(plugin.getLanguageText(langKey, defaultMsg));
+            event.setCancelled(true);
+        }
+    }
+
+
+/*暂时注释    @EventHandler
     public void onPlayerEat(PlayerItemConsumeEvent event) {
         // 检查配置
         World world = event.getPlayer().getWorld();
@@ -337,61 +388,82 @@ public class ProtectionListener implements Listener {
             //event.getPlayer().sendMessage("你不能喝东西。");
             event.setCancelled(true);
         }
-    }
+    }*/
     public void handlePotionEffects(Player player) {
         World world = player.getWorld();
         FileConfiguration config = plugin.getWorldConfig(world);
         int duration = plugin.getConfig().getInt("effect-check-interval", 600);
 
+        // 日志：记录方法调用和基本信息
+        plugin.getLogger().info("Handling potion effects for player: " + player.getName() + " in world: " + world.getName());
+
+        // 权限检查
         if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.effects")) {
-            return; // 如果有权限，直接返回
+            plugin.getLogger().info("Player " + player.getName() + " has bypass permission. Skipping potion effect handling.");
+            return;
         }
 
         if (config != null) {
-            boolean preventEffectsEnabled = config.getBoolean("protect.prevent-potion-effects-enabled");
-            boolean keepEffectsEnabled = config.getBoolean("protect.keep-potion-effects-enabled");
+            // 检查是否启用功能
+            boolean isEnabled = config.getBoolean("enable", false);
+            if (!isEnabled) {
+                plugin.getLogger().info("Potion effect handling is disabled in world: " + world.getName());
+                return;
+            }
+
+            boolean preventEffectsEnabled = config.getBoolean("protect.prevent-potion-effects-enabled", false);
+            boolean keepEffectsEnabled = config.getBoolean("protect.keep-potion-effects-enabled", false);
+
+            plugin.getLogger().info("Potion effects settings: preventEffectsEnabled=" + preventEffectsEnabled + ", keepEffectsEnabled=" + keepEffectsEnabled);
 
             Set<String> preventEffectsSet = new HashSet<>(config.getStringList("protect.prevent-potion-effects"));
             Set<String> keepEffectsSet = new HashSet<>();
 
-            // 收集保持的药水效果
+            // 日志：记录屏蔽效果列表
+            plugin.getLogger().info("Effects to prevent: " + preventEffectsSet);
+
+            // 处理保持的药水效果
             if (keepEffectsEnabled) {
                 List<Map<?, ?>> keepEffectsList = config.getMapList("protect.keep-potion-effects");
+                plugin.getLogger().info("Effects to keep: " + keepEffectsList);
+
                 for (Map<?, ?> effectMap : keepEffectsList) {
                     String effectName = (String) effectMap.get("effect");
                     Integer level = (Integer) effectMap.get("level");
+
                     keepEffectsSet.add(effectName);
 
                     // 添加药水效果
                     PotionEffectType effectType = PotionEffectType.getByName(effectName);
                     if (effectType != null && level != null) {
                         player.addPotionEffect(new PotionEffect(effectType, duration + 100, level - 1, true, false));
-                        //player.sendMessage("已应用保持药水效果: " + effectName + " 等级: " + (level - 1));
+                        plugin.getLogger().info("Applied potion effect: " + effectName + ", level: " + level);
                     } else {
-                        //player.sendMessage("无法应用保持药水效果: " + effectName + "，请检查配置。");
+                        plugin.getLogger().warning("Failed to apply potion effect: " + effectName + ". Please check the configuration.");
                     }
                 }
             }
 
             // 屏蔽药水效果
             if (preventEffectsEnabled) {
+                plugin.getLogger().info("Checking active potion effects for removal.");
                 for (PotionEffect potionEffect : player.getActivePotionEffects()) {
                     String potionEffectName = potionEffect.getType().getName();
                     boolean isPrevented = preventEffectsSet.contains(potionEffectName);
 
-                    // 仅移除在 preventEffectsSet 中的效果
                     if (isPrevented) {
                         player.removePotionEffect(potionEffect.getType());
-                        //player.sendMessage("已移除药水效果: " + potionEffectName);
+                        plugin.getLogger().info("Removed potion effect: " + potionEffectName);
+                    } else {
+                        plugin.getLogger().info("Potion effect not prevented: " + potionEffectName);
                     }
                 }
             }
         } else {
-            notifyOps(world,"配置未找到，请检查插件设置。");
+            plugin.getLogger().warning("Configuration for world " + world.getName() + " not found. Please check plugin setup.");
+            notifyOps(world, "配置未找到，请检查插件设置。");
         }
     }
-
-
 
     private void notifyOps(World world, String message) {
         boolean hasOp = false;
