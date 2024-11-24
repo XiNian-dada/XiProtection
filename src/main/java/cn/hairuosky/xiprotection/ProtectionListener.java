@@ -5,6 +5,11 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import java.util.Arrays;
+
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -14,8 +19,10 @@ import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerShearEntityEvent;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -261,6 +268,146 @@ public class ProtectionListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        //TODO 压力板检测无效
+        //TODO 拌线勾可正常使用，但是无法右键
+        Player player = event.getPlayer();
+        Block block = event.getClickedBlock();
+
+        // 如果没有点击任何方块，直接返回
+        if (block == null) return;
+
+        World world = player.getWorld();
+        FileConfiguration config = plugin.getWorldConfig(world);
+
+        // 权限检查
+        if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.interactions")) {
+            return; // 如果有权限，直接返回
+        }
+
+        if (config != null && config.getBoolean("enable")) {
+            // 获取交互类型设置
+            ConfigurationSection interactConfig = config.getConfigurationSection("protect.prevent-interactions");
+
+            if (interactConfig != null) {
+                String blockTypeName = block.getType().name().toLowerCase();
+
+                // 通用检查：直接从配置获取是否禁止
+                if (interactConfig.getBoolean(blockTypeName, false)) {
+                    cancelInteraction(player, blockTypeName, event);
+                    return;
+                }
+
+                // 判断版本
+                String version = getServerVersion();
+                boolean isLegacy = version.startsWith("v1_12"); // 判断是否为 1.12.x 或以下
+
+                BlockState state = block.getState();
+
+                // 高版本特有的方块检查（仅在非低版本情况下处理）
+                if (!isLegacy) {
+                    Material[] highVersionMaterials = {
+                            Material.BELL, Material.COMPOSTER, Material.BEEHIVE, Material.BEE_NEST, Material.STONECUTTER,
+                            Material.CARTOGRAPHY_TABLE, Material.GRINDSTONE, Material.SMITHING_TABLE, Material.BARREL,
+                            Material.DAYLIGHT_DETECTOR
+                    };
+
+                    for (Material material : highVersionMaterials) {
+                        if (block.getType() == material && interactConfig.getBoolean(material.name().toLowerCase(), false)) {
+                            cancelInteraction(player, material.name().toLowerCase(), event);
+                            return;
+                        }
+                    }
+                }
+
+                // 活版门、门、栅栏门
+                if (block.getType().name().contains("TRAPDOOR") && interactConfig.getBoolean("trapdoor", false)) {
+                    cancelInteraction(player, "trapdoor", event);
+                    return;
+                }
+                if (block.getType().name().contains("DOOR") && interactConfig.getBoolean("door", false)) {
+                    cancelInteraction(player, "door", event);
+                    return;
+                }
+                if (block.getType().name().contains("FENCE_GATE") && interactConfig.getBoolean("fence_gate", false)) {
+                    cancelInteraction(player, "fence_gate", event);
+                    return;
+                }
+
+                // 按钮、拉杆、绊线钩
+                if (state.getBlockData() instanceof org.bukkit.block.data.type.Switch) {
+                    if (block.getType().name().contains("BUTTON") && interactConfig.getBoolean("button", false)) {
+                        cancelInteraction(player, "button", event);
+                        return;
+                    }
+                    if (block.getType() == Material.LEVER && interactConfig.getBoolean("lever", false)) {
+                        cancelInteraction(player, "lever", event);
+                        return;
+                    }
+                    if (!isLegacy && block.getType() == Material.TRIPWIRE_HOOK && interactConfig.getBoolean("tripwire_hook", false)) {
+                        cancelInteraction(player, "tripwire_hook", event);
+                        return;
+                    }
+                }
+
+                // 容器方块
+                Material[] containerBlocks = {
+                        Material.FURNACE, Material.CHEST, Material.ENDER_CHEST, Material.SHULKER_BOX,
+                        Material.DISPENSER, Material.DROPPER, Material.HOPPER, Material.BARREL
+                };
+
+                for (Material containerBlock : containerBlocks) {
+                    if (block.getType() == containerBlock && interactConfig.getBoolean(containerBlock.name().toLowerCase(), false)) {
+                        cancelInteraction(player, containerBlock.name().toLowerCase(), event);
+                        return;
+                    }
+                }
+
+                // 其他特殊方块检查
+                Material[] specialBlocks = {
+                        Material.BREWING_STAND, Material.BEACON, Material.ENCHANTING_TABLE, Material.ANVIL,
+                        Material.LECTERN, Material.CAULDRON
+                };
+
+                for (Material specialBlock : specialBlocks) {
+                    if (block.getType() == specialBlock && interactConfig.getBoolean(specialBlock.name().toLowerCase(), false)) {
+                        cancelInteraction(player, specialBlock.name().toLowerCase(), event);
+                        return;
+                    }
+                }
+
+                // 音乐方块和床
+                if (block.getType() == Material.NOTE_BLOCK && interactConfig.getBoolean("note_block", false)) {
+                    cancelInteraction(player, "note_block", event);
+                    return;
+                }
+                if (block.getType() == Material.JUKEBOX && interactConfig.getBoolean("jukebox", false)) {
+                    cancelInteraction(player, "jukebox", event);
+                    return;
+                }
+                if (block.getType().name().contains("BED") && interactConfig.getBoolean("bed", false)) {
+                    cancelInteraction(player, "bed", event);
+                }
+            }
+        }
+    }
+
+    // 取消交互并发送消息的方法
+    private void cancelInteraction(Player player, String blockName, PlayerInteractEvent event) {
+        event.setCancelled(true);
+        sendCannotInteractMessage(player, blockName);
+    }
+
+
+
+    /**
+     * 获取服务器版本。
+     */
+    private String getServerVersion() {
+        String packageName = plugin.getServer().getClass().getPackage().getName();
+        return packageName.substring(packageName.lastIndexOf('.') + 1);
+    }
 
     void maintainItems(Player player) {
         World world = player.getWorld();
@@ -373,40 +520,6 @@ public class ProtectionListener implements Listener {
         }
     }
 
-
-/*暂时注释    @EventHandler
-    public void onPlayerEat(PlayerItemConsumeEvent event) {
-        // 检查配置
-        World world = event.getPlayer().getWorld();
-        Player player = event.getPlayer();
-        FileConfiguration config = plugin.getWorldConfig(world);
-        // 权限检查
-        if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.eating")) {
-            return; // 如果有权限，直接返回
-        }
-        if (config != null && config.getBoolean("enable") && config.getBoolean("protect.prevent-eating")) {
-            event.getPlayer().sendMessage(plugin.getLanguageText("cannot-eat","你不能在这个世界中吃东西！"));
-            //event.getPlayer().sendMessage("你不能吃东西。");
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler
-    public void onPlayerDrink(PlayerItemConsumeEvent event) {
-        // 检查配置
-        World world = event.getPlayer().getWorld();
-        FileConfiguration config = plugin.getWorldConfig(world);
-        Player player = event.getPlayer();
-        // 权限检查
-        if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.drinking")) {
-            return; // 如果有权限，直接返回
-        }
-        if (config != null && config.getBoolean("enable") && config.getBoolean("protect.prevent-drinking")) {
-            event.getPlayer().sendMessage(plugin.getLanguageText("cannot-drink","你不能在这个世界中喝东西！"));
-            //event.getPlayer().sendMessage("你不能喝东西。");
-            event.setCancelled(true);
-        }
-    }*/
     public void handlePotionEffects(Player player) {
         World world = player.getWorld();
         FileConfiguration config = plugin.getWorldConfig(world);
@@ -478,6 +591,19 @@ public class ProtectionListener implements Listener {
             plugin.getLogger().warning("Configuration for world " + world.getName() + " not found. Please check plugin setup.");
             notifyOps(world, "配置未找到，请检查插件设置。");
         }
+    }
+
+
+    /**
+     * 动态发送不能交互的消息
+     *
+     * @param player 玩家
+     * @param type   物品类型（语言键）
+     */
+    private void sendCannotInteractMessage(Player player, String type) {
+        String defaultMessage = "你不能使用这个物品！"; // 默认消息
+        String messageKey = "cannot-use-" + type;
+        player.sendMessage(plugin.getLanguageText(messageKey, defaultMessage));
     }
 
     private void notifyOps(World world, String message) {

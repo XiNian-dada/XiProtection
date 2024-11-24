@@ -8,10 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ProtectionCommand implements CommandExecutor {
 
@@ -93,8 +90,8 @@ public class ProtectionCommand implements CommandExecutor {
 
             // 保存配置
             plugin.saveWorldConfig(world);
-            sender.sendMessage(plugin.getLanguageText("command-save-done", "已更新 {world} 的 {setting} 设置。")
-                    .replace("{world}", worldName).replace("{setting}", setting));
+            //sender.sendMessage(plugin.getLanguageText("command-save-done", "已更新 {world} 的 {setting} 设置。")
+            //        .replace("{world}", worldName).replace("{setting}", setting));
             return true;
         }
 
@@ -130,6 +127,7 @@ public class ProtectionCommand implements CommandExecutor {
         switch (setting.toLowerCase()) {
             case "enable":
                 config.set("enable", Boolean.parseBoolean(value));
+                break;
             case "anti-break":
                 config.set("protect.anti-break", Boolean.parseBoolean(value));
                 break;
@@ -209,7 +207,7 @@ public class ProtectionCommand implements CommandExecutor {
         return true;
     }
 
-//TODO 以下的操作的语言文件还没有写出去
+    //TODO 以下的操作的语言文件还没有写出去
     private void handlePotionEffectModification(FileConfiguration config, CommandSender sender, String[] args, String action, String setting) {
         if (args.length < 4) {
             sender.sendMessage(plugin.getLanguageText("command-usage-potion", "用法: /xiprotection <add|remove> <world> " + setting + " <effect> [level]"));
@@ -237,9 +235,9 @@ public class ProtectionCommand implements CommandExecutor {
                 }
             }
 
-            // 添加新效果
-            Map<String, Object> newEffect = new HashMap<>();
-            newEffect.put("effect", effect);
+            // 添加新效果（使用 LinkedHashMap 保证顺序）
+            Map<String, Object> newEffect = new LinkedHashMap<>();
+            newEffect.put("effect", effect); // 确保顺序：先 effect 后 level
             newEffect.put("level", level);
             effects.add(newEffect);
             config.set(fullPath, effects);
@@ -266,12 +264,30 @@ public class ProtectionCommand implements CommandExecutor {
                     }
                 }
 
+                // 检查输入的药水效果是否存在
+                boolean effectExists = effects.stream()
+                        .anyMatch(e -> effect.equalsIgnoreCase((String) e.get("effect")));
+                if (!effectExists) {
+                    sender.sendMessage(plugin.getLanguageText("command-effect-not-found", "未找到 {effect} 效果于 {setting} 中。")
+                            .replace("{effect}", effect).replace("{setting}", setting));
+                    return;
+                }
+
                 // 移除效果
                 effects.removeIf(e -> effect.equalsIgnoreCase((String) e.get("effect")));
                 config.set(fullPath, effects);
             } else {
                 // 处理 prevent-potion-effects
                 List<String> effects = config.getStringList(fullPath);
+
+                // 检查输入的药水效果是否存在
+                if (!effects.contains(effect)) {
+                    sender.sendMessage(plugin.getLanguageText("command-effect-not-found", "未找到 {effect} 于 {setting} 中。")
+                            .replace("{effect}", effect).replace("{setting}", setting));
+                    return;
+                }
+
+                // 移除效果
                 effects.remove(effect);
                 config.set(fullPath, effects);
             }
@@ -279,20 +295,27 @@ public class ProtectionCommand implements CommandExecutor {
             sender.sendMessage(plugin.getLanguageText("command-remove-potion", "已从 {setting} 移除 {effect}。")
                     .replace("{effect}", effect).replace("{setting}", setting));
         }
+
     }
 
 
     private void handleItemModification(FileConfiguration config, CommandSender sender, String[] args, String action) {
-        if (args.length < 5) {
-            sender.sendMessage(plugin.getLanguageText("command-usage-items", "用法: /xiprotection <add|remove> <world> keep-items <item> <quantity>"));
+        if (args.length < 4 || (action.equalsIgnoreCase("add") && args.length < 5)) {
+            sender.sendMessage(plugin.getLanguageText("command-usage-items", "用法: /xiprotection <add|remove> <world> keep-items <item> [quantity]"));
             return;
         }
 
         String item = args[3].toUpperCase();
-        int quantity = Integer.parseInt(args[4]);
         String fullPath = "protect.keep-items";
 
         if (action.equalsIgnoreCase("add")) {
+            if (args.length < 5) {
+                sender.sendMessage(plugin.getLanguageText("command-usage-add-item", "用法: /xiprotection add <world> keep-items <item> <quantity>"));
+                return;
+            }
+
+            int quantity = Integer.parseInt(args[4]);
+
             // 获取配置中的列表
             List<Map<String, Object>> items = new ArrayList<>();
             for (Object obj : config.getList(fullPath, new ArrayList<>())) {
@@ -323,6 +346,15 @@ public class ProtectionCommand implements CommandExecutor {
                 }
             }
 
+            // 检查物品是否存在
+            boolean itemExists = items.stream()
+                    .anyMatch(i -> item.equalsIgnoreCase((String) i.get("item")));
+            if (!itemExists) {
+                sender.sendMessage(plugin.getLanguageText("command-item-not-found", "未找到物品 {item} 于 keep-items 中。")
+                        .replace("{item}", item));
+                return;
+            }
+
             // 移除物品
             items.removeIf(i -> item.equalsIgnoreCase((String) i.get("item")));
             config.set(fullPath, items);
@@ -330,5 +362,6 @@ public class ProtectionCommand implements CommandExecutor {
             sender.sendMessage(plugin.getLanguageText("command-remove-item", "已从 keep-items 移除 {item}。").replace("{item}", item));
         }
     }
+
 
 }

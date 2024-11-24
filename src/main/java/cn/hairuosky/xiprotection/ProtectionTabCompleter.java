@@ -44,9 +44,13 @@ public class ProtectionTabCompleter implements TabCompleter {
                     "prevent-eating", "prevent-drinking", "prevent-potion-effects-enabled",
                     "keep-potion-effects-enabled"
             );
+        } else if (args.length == 4 && args[0].equalsIgnoreCase("set")) {
+            return Arrays.asList("true","false");
+
         } else if (args.length == 3 && args[0].equalsIgnoreCase("add")) {
             // 第三个参数: keep-items、keep-potion-effects、prevent-potion-effects
             return Arrays.asList("keep-items", "keep-potion-effects", "prevent-potion-effects");
+
         } else if (args.length == 3 && args[0].equalsIgnoreCase("remove")) {
             // 第三个参数: keep-items、keep-potion-effects、prevent-potion-effects
             return Arrays.asList("keep-items", "keep-potion-effects", "prevent-potion-effects");
@@ -60,6 +64,7 @@ public class ProtectionTabCompleter implements TabCompleter {
                 return getAllItems();
             }
         } else if (args.length == 4 && args[0].equalsIgnoreCase("remove")) {
+            // 移除的第四个参数: 动态补全已有配置的物品/效果
             String worldName = args[1];
             World world = plugin.getServer().getWorld(worldName);
             if (world == null) return Collections.emptyList();
@@ -68,24 +73,11 @@ public class ProtectionTabCompleter implements TabCompleter {
             if (config == null) return Collections.emptyList();
 
             if (args[2].equalsIgnoreCase("keep-items")) {
-                // 获取已配置的 keep-items
-                List<Map<String, Object>> items = (List<Map<String, Object>>) config.getList("keep-items", Collections.emptyList());
-                List<String> itemNames = new ArrayList<>();
-                for (Map<String, Object> item : items) {
-                    itemNames.add((String) item.get("item"));
-                }
-                return itemNames;
+                return getConfigItems(config, "protect.keep-items", "item");
             } else if (args[2].equalsIgnoreCase("keep-potion-effects")) {
-                // 获取已配置的 keep-potion-effects
-                List<Map<String, Object>> effects = (List<Map<String, Object>>) config.getList("keep-potion-effects", Collections.emptyList());
-                List<String> effectNames = new ArrayList<>();
-                for (Map<String, Object> effect : effects) {
-                    effectNames.add((String) effect.get("effect"));
-                }
-                return effectNames;
+                return getConfigItems(config, "protect.keep-potion-effects", "effect");
             } else if (args[2].equalsIgnoreCase("prevent-potion-effects")) {
-                // 获取已配置的 prevent-potion-effects
-                return config.getStringList("prevent-potion-effects");
+                return config.getStringList("protect.prevent-potion-effects");
             }
         } else if (args.length == 5 && args[0].equalsIgnoreCase("add") && args[2].equalsIgnoreCase("keep-potion-effects")) {
             // 第五个参数: 药水效果等级
@@ -94,7 +86,22 @@ public class ProtectionTabCompleter implements TabCompleter {
 
         return Collections.emptyList(); // 默认返回空列表
     }
-
+    /**
+     * 从配置文件中获取指定路径下的所有物品/效果名
+     *
+     * @param config 配置文件
+     * @param path   配置路径
+     * @param key    数据键名（例如 "item" 或 "effect"）
+     * @return 列表结果
+     */
+    private List<String> getConfigItems(FileConfiguration config, String path, String key) {
+        List<Map<String, Object>> entries = (List<Map<String, Object>>) config.getList(path, Collections.emptyList());
+        if (entries == null) return Collections.emptyList();
+        return entries.stream()
+                .map(entry -> (String) entry.get(key))
+                .filter(item -> item != null && !item.isEmpty())
+                .collect(Collectors.toList());
+    }
     /**
      * 获取所有药水效果
      */

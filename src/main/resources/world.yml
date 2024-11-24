@@ -32,6 +32,40 @@ protect:
     - "/warp"
   prevent-eating: true # 禁止吃东西
   prevent-drinking: true # 禁止喝东西
+  prevent-interactions:
+    furnace: true         # 禁止使用熔炉
+    chest: true           # 禁止打开箱子
+    ender_chest: true     # 禁止打开末影箱
+    shulker_box: true     # 禁止打开潜影盒
+    button: true          # 禁止按按钮
+    lever: true           # 禁止拉拉杆
+    trapdoor: true        # 禁止打开活版门
+    door: true            # 禁止开门
+    pressure_plate: true  # 禁止触发压力板
+    dispenser: true       # 禁止使用发射器
+    dropper: true         # 禁止使用投掷器
+    hopper: true          # 禁止使用漏斗
+    barrel: true          # 禁止使用木桶
+    brewing_stand: true   # 禁止使用酿造台
+    beacon: true          # 禁止使用信标
+    enchanting_table: true # 禁止使用附魔台
+    anvil: true           # 禁止使用铁砧
+    cartography_table: true # 禁止使用制图台
+    grindstone: true      # 禁止使用砂轮
+    lectern: true         # 禁止使用讲台
+    smithing_table: true  # 禁止使用锻造台
+    stonecutter: true     # 禁止使用切石机
+    jukebox: true         # 禁止使用唱片机
+    note_block: true      # 禁止使用音符盒
+    fence_gate: true      # 禁止打开栅栏门
+    composter: true       # 禁止使用堆肥桶
+    beehive: true         # 禁止使用蜂巢
+    bee_nest: true        # 禁止使用蜂巢巢穴
+    daylight_detector: true # 禁止修改阳光探测器
+    tripwire_hook: true   # 禁止触发绊线钩
+    bed: true             # 禁止右键床
+    bell: true            # 禁止敲钟
+    cauldron: true        # 禁止使用炼药锅
 
 
   prevent-potion-effects-enabled: true

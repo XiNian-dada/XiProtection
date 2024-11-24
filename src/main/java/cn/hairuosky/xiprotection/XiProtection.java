@@ -19,17 +19,11 @@ import java.util.*;
 * 测试记录：
 * Listeners & Functions 全部可用
 * Commands 可用
-* 指令remove必须添加数字才能remove，奇怪，然后是发送消息会发送多个
-* 添加keep potion effect的时候，level跑到了effect前面，但是不影响效果，无伤大雅，但是难看啊
-*  keep-potion-effects:
-  - effect: SPEED
-    level: 1
-  - effect: JUMP
-    level: 3
-  - level: 5
-    effect: ABSORPTION
 *
-* */
+*
+*
+*  */
+//TODO 交互禁止
 public final class XiProtection extends JavaPlugin {
     private ProtectionListener protectionListener;
     private final Map<World, FileConfiguration> worldConfigs = new HashMap<>();

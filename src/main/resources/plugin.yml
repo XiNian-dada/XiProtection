@@ -68,3 +68,6 @@ permissions:
   xiprotection.bypass.effects:
     description: "允许玩家在受保护的世界中无视药水效果配置"
     default: op
+  xiprotection.bypass.interactions:
+    description: "运行玩家在受保护的世界中和某些东西交互"
+
