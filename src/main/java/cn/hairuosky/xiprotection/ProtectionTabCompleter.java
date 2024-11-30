@@ -42,7 +42,24 @@ public class ProtectionTabCompleter implements TabCompleter {
                     "keep-full-health", "prevent-treading", "prevent-throwables",
                     "keep-items-enabled", "banned-commands-enabled",
                     "prevent-eating", "prevent-drinking", "prevent-potion-effects-enabled",
-                    "keep-potion-effects-enabled"
+                    "keep-potion-effects-enabled",// 新增的 prevent-interactions 配置项
+                    "prevent-interactions.furnace", "prevent-interactions.chest",
+                    "prevent-interactions.ender_chest", "prevent-interactions.shulker_box",
+                    "prevent-interactions.button", "prevent-interactions.lever",
+                    "prevent-interactions.trapdoor", "prevent-interactions.door",
+                    "prevent-interactions.pressure_plate", "prevent-interactions.dispenser",
+                    "prevent-interactions.dropper", "prevent-interactions.hopper",
+                    "prevent-interactions.barrel", "prevent-interactions.brewing_stand",
+                    "prevent-interactions.beacon", "prevent-interactions.enchanting_table",
+                    "prevent-interactions.anvil", "prevent-interactions.cartography_table",
+                    "prevent-interactions.grindstone", "prevent-interactions.lectern",
+                    "prevent-interactions.smithing_table", "prevent-interactions.stonecutter",
+                    "prevent-interactions.jukebox", "prevent-interactions.note_block",
+                    "prevent-interactions.fence_gate", "prevent-interactions.composter",
+                    "prevent-interactions.beehive", "prevent-interactions.bee_nest",
+                    "prevent-interactions.daylight_detector", "prevent-interactions.tripwire_hook",
+                    "prevent-interactions.bed", "prevent-interactions.bell",
+                    "prevent-interactions.cauldron"
             );
         } else if (args.length == 4 && args[0].equalsIgnoreCase("set")) {
             return Arrays.asList("true","false");

@@ -53,8 +53,6 @@ public class ProtectionGUI implements Listener {
         player.openInventory(inventory);
     }
 
-
-
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getView().getTitle().equals("选择世界")) {
@@ -73,39 +71,36 @@ public class ProtectionGUI implements Listener {
 
                 World world = Bukkit.getWorld(worldName); // 如果世界名不存在，Bukkit.getWorld 会返回 null
                 if (world != null) {
-                    openSettingsMenu(player, world);
+                    openSettingsMenu_1(player, world); // 打开第一页设置菜单
                 } else {
                     player.sendMessage("未找到世界: " + worldName);
                 }
             }
-
         }
     }
 
-
-    private void openSettingsMenu(Player player, World world) {
-        Inventory settingsInventory = Bukkit.createInventory(null, 27, "配置选项 - " + world.getName());
+    // 打开第一页设置菜单
+    private void openSettingsMenu_1(Player player, World world) {
         FileConfiguration config = plugin.getConfig();
+        Inventory settingsInventory = Bukkit.createInventory(null, config.getInt("gui.size", 54), "配置选项 - " + world.getName() + " 第1页");
 
-        // 读取并设置功能项
-        for (String key : Objects.requireNonNull(config.getConfigurationSection("gui.option")).getKeys(false)) {
-            String itemPath = "gui.option." + key + ".item";
-            String namePath = "gui.option." + key + ".name";
-            int slot = config.getInt("gui.option." + key + ".slot", -1);  // 默认值为 -1
-            List<Integer> slots = config.getIntegerList("gui.option." + key + ".slots");  // 读取 slots 列表
+        // 读取第一页的配置并设置物品项
+        for (String key : Objects.requireNonNull(config.getConfigurationSection("gui.page-1")).getKeys(false)) {
+            String itemPath = "gui.page-1." + key + ".item";
+            String namePath = "gui.page-1." + key + ".name";
+            int slot = config.getInt("gui.page-1." + key + ".slot", -1);  // 默认值为 -1
+            List<Integer> slots = config.getIntegerList("gui.page-1." + key + ".slots");  // 读取 slots 列表
 
             Material material = Material.getMaterial(config.getString(itemPath, "BARRIER"));
             if (material == null) {
                 material = Material.BARRIER; // 使用默认物品
             }
 
-            String displayName = ChatColor.translateAlternateColorCodes('&',config.getString(namePath, key));
-            String function = config.getString("gui.option." + key + ".function", "");
+            String displayName = ChatColor.translateAlternateColorCodes('&', config.getString(namePath, key));
+            String function = config.getString("gui.page-1." + key + ".function", "");
 
-            // 转换颜色符号(&)为Minecraft的颜色代码
             displayName = ChatColor.translateAlternateColorCodes('&', displayName);
 
-            // 如果是装饰物品，不显示开启/关闭状态
             if (function.equals("decorate")) {
                 ItemStack itemStack = new ItemStack(material);
                 ItemMeta meta = itemStack.getItemMeta();
@@ -114,7 +109,6 @@ public class ProtectionGUI implements Listener {
                     itemStack.setItemMeta(meta);
                 }
 
-                // 如果 slots 存在，填充多个位置
                 if (!slots.isEmpty()) {
                     for (int s : slots) {
                         settingsInventory.setItem(s, itemStack);
@@ -123,23 +117,79 @@ public class ProtectionGUI implements Listener {
                     settingsInventory.setItem(slot, itemStack);
                 }
             } else {
-                // 普通功能项，带上开启/关闭状态
-                ItemStack itemStack = createToggleItem(material, displayName, getConfigValue(world, key));
+                ItemStack itemStack = createToggleItem(material, displayName, getConfigValue(world, function));
 
-                // 如果 slots 存在，填充多个位置
                 if (!slots.isEmpty()) {
                     for (int s : slots) {
                         settingsInventory.setItem(s, itemStack);
                     }
                 } else if (slot != -1) {
-                    // 如果只有一个 slot，则填充单个位置
                     settingsInventory.setItem(slot, itemStack);
                 }
             }
         }
 
+        // 设置翻页按钮
+        setPaginationButtons(settingsInventory, 1);
+
         player.openInventory(settingsInventory);
     }
+
+    private void openSettingsMenu_2(Player player, World world) {
+        FileConfiguration config = plugin.getConfig();
+        Inventory settingsInventory = Bukkit.createInventory(null, config.getInt("gui.size", 54), "配置选项 - " + world.getName() + " 第2页");
+
+        // 读取第二页的配置并设置物品项
+        for (String key : Objects.requireNonNull(config.getConfigurationSection("gui.page-2")).getKeys(false)) {
+            String itemPath = "gui.page-2." + key + ".item";
+            String namePath = "gui.page-2." + key + ".name";
+            int slot = config.getInt("gui.page-2." + key + ".slot", -1);  // 默认值为 -1
+            List<Integer> slots = config.getIntegerList("gui.page-2." + key + ".slots");  // 读取 slots 列表
+
+            Material material = Material.getMaterial(config.getString(itemPath, "BARRIER"));
+            if (material == null) {
+                material = Material.BARRIER; // 使用默认物品
+            }
+
+            String displayName = ChatColor.translateAlternateColorCodes('&', config.getString(namePath, key));
+            String function = config.getString("gui.page-2." + key + ".function", "");
+
+            displayName = ChatColor.translateAlternateColorCodes('&', displayName);
+
+            if (function.equals("decorate")) {
+                ItemStack itemStack = new ItemStack(material);
+                ItemMeta meta = itemStack.getItemMeta();
+                if (meta != null) {
+                    meta.setDisplayName(displayName);  // 保持原名称，不带 "开启/关闭"
+                    itemStack.setItemMeta(meta);
+                }
+
+                if (!slots.isEmpty()) {
+                    for (int s : slots) {
+                        settingsInventory.setItem(s, itemStack);
+                    }
+                } else if (slot != -1) {
+                    settingsInventory.setItem(slot, itemStack);
+                }
+            } else {
+                ItemStack itemStack = createToggleItem(material, displayName, getConfigValue(world, function));
+
+                if (!slots.isEmpty()) {
+                    for (int s : slots) {
+                        settingsInventory.setItem(s, itemStack);
+                    }
+                } else if (slot != -1) {
+                    settingsInventory.setItem(slot, itemStack);
+                }
+            }
+        }
+
+        // 设置翻页按钮
+        setPaginationButtons(settingsInventory, 2);
+
+        player.openInventory(settingsInventory);
+    }
+
 
     private ItemStack createToggleItem(Material material, String name, boolean value) {
         ItemStack item = new ItemStack(material);
@@ -159,11 +209,48 @@ public class ProtectionGUI implements Listener {
         return item;
     }
 
-
     private boolean getConfigValue(World world, String setting) {
         FileConfiguration config = plugin.getWorldConfig(world);
         return config.getBoolean("protect." + setting, false);
     }
+
+    private void setPaginationButtons(Inventory inventory, int page) {
+        FileConfiguration config = plugin.getConfig();
+
+        // 获取翻页按钮的配置
+        String nextPageItem = config.getString("gui.page-" + page + ".next-page.item", "ARROW");
+        String previousPageItem = config.getString("gui.page-" + page + ".previous_page.item", "ARROW");
+
+        int nextPageSlot = config.getInt("gui.page-" + page + ".next-page.slot", 53);
+        int previousPageSlot = config.getInt("gui.page-" + page + ".previous_page.slot", 45);
+
+        String nextPageName = ChatColor.translateAlternateColorCodes('&', config.getString("gui.page-" + page + ".next-page.name", "&e下一页"));
+        String previousPageName = ChatColor.translateAlternateColorCodes('&', config.getString("gui.page-" + page + ".previous_page.name", "&7上一页"));
+
+        // 创建翻页按钮
+        ItemStack nextPage = new ItemStack(Material.getMaterial(nextPageItem));
+        ItemMeta nextMeta = nextPage.getItemMeta();
+        if (nextMeta != null) {
+            nextMeta.setDisplayName(nextPageName);
+            nextPage.setItemMeta(nextMeta);
+        }
+
+        ItemStack previousPage = new ItemStack(Material.getMaterial(previousPageItem));
+        ItemMeta previousMeta = previousPage.getItemMeta();
+        if (previousMeta != null) {
+            previousMeta.setDisplayName(previousPageName);
+            previousPage.setItemMeta(previousMeta);
+        }
+
+        // 设置翻页按钮
+        if (page == 1) {
+            inventory.setItem(nextPageSlot, nextPage); // 设置下一页按钮
+        } else if (page == 2) {
+            inventory.setItem(previousPageSlot, previousPage); // 设置上一页按钮
+        }
+    }
+
+
 
     @EventHandler
     public void onSettingsInventoryClick(InventoryClickEvent event) {
@@ -171,7 +258,7 @@ public class ProtectionGUI implements Listener {
             event.setCancelled(true);  // 防止物品被移除
 
             Player player = (Player) event.getWhoClicked();
-            String worldName = event.getView().getTitle().replace("配置选项 - ", "");
+            String worldName = event.getView().getTitle().replace("配置选项 - ", "").split(" ")[0];
             World world = Bukkit.getWorld(worldName);
 
             if (world != null) {
@@ -184,58 +271,59 @@ public class ProtectionGUI implements Listener {
                 if (meta != null && meta.hasDisplayName()) {
                     String itemName = meta.getDisplayName();
 
-                    // 从配置中获取 item 的 function
-                    String function = "";
-                    FileConfiguration config = plugin.getConfig();
-                    for (String key : Objects.requireNonNull(config.getConfigurationSection("gui.option")).getKeys(false)) {
-                        String name = config.getString("gui.option." + key + ".name");
-                        if (name != null && name.equals(itemName)) {
-                            function = config.getString("gui.option." + key + ".function", "");
-                            break;
-                        }
+                    // 处理翻页按钮的点击
+                    if (itemName.contains("下一页")) {
+                        openSettingsMenu_2(player, world); // 转到第二页
+                    } else if (itemName.contains("上一页")) {
+                        openSettingsMenu_1(player, world); // 返回第一页
+                    } else {
+                        // 否则执行设置切换
+                        toggleSetting(player, event.getSlot(), world, event.getView().getTitle());
                     }
-
-                    // 如果 function 是 "decorate"，则不执行任何操作
-                    if (function.equals("decorate")) {
-                        return;
-                    }
-
-                    // 否则继续执行正常的设置切换逻辑
-                    toggleSetting(player, event.getSlot(), world);
                 }
             }
         }
     }
 
-    private void toggleSetting(Player player, int slot, World world) {
+    private void toggleSetting(Player player, int slot, World world, String menuTitle) {
         FileConfiguration worldConfig = plugin.getWorldConfig(world);
         FileConfiguration mainConfig = plugin.getConfig();
-        ConfigurationSection optionSection = mainConfig.getConfigurationSection("gui.option");
 
-        if (optionSection == null) {
-            player.sendMessage("未找到配置节 'gui.option'。请检查 config.yml 文件。");
+        // 判断当前页面是第一页还是第二页
+        int page = menuTitle.contains("第2页") ? 2 : 1;
+
+        // 遍历当前页的配置
+        ConfigurationSection pageSection = mainConfig.getConfigurationSection("gui.page-" + page);
+        if (pageSection == null) {
+            player.sendMessage("无法找到当前页面的配置！");
             return;
         }
 
-        // 遍历主配置文件中的 GUI 配置节
-        for (String key : optionSection.getKeys(false)) {
-            int configSlot = mainConfig.getInt("gui.option." + key + ".slot");
+        for (String key : pageSection.getKeys(false)) {
+            ConfigurationSection itemSection = pageSection.getConfigurationSection(key);
+            if (itemSection == null) continue;
 
-            if (configSlot == slot) {
-                boolean currentValue = worldConfig.getBoolean("protect." + key, false);
-                worldConfig.set("protect." + key, !currentValue); // 切换值
+            int configSlot = itemSection.getInt("slot", -1);
+            String function = itemSection.getString("function", "");
+
+            // 如果点击的槽位匹配，则切换该设置
+            if (configSlot == slot && !function.isEmpty()) {
+                boolean currentValue = worldConfig.getBoolean("protect." + function, false);
+                worldConfig.set("protect." + function, !currentValue); // 切换值
                 plugin.saveWorldConfig(world); // 保存世界配置文件
-                player.sendMessage(key + " 已设置为 " + (!currentValue ? "开启" : "关闭"));
-                // 重新打开设置菜单
-                openSettingsMenu(player, world);
+                player.sendMessage(function + " 已设置为 " + (!currentValue ? "开启" : "关闭"));
+
+                // 重新打开当前页面的设置菜单
+                if (page == 1) {
+                    openSettingsMenu_1(player, world);
+                } else {
+                    openSettingsMenu_2(player, world);
+                }
                 return;
             }
         }
 
-        player.sendMessage("未知设置项！");
+        player.sendMessage("未找到匹配的设置项！");
     }
-
-
-
 
 }

@@ -188,6 +188,105 @@ public class ProtectionCommand implements CommandExecutor {
             case "keep-potion-effects-enabled":
                 config.set("protect.keep-potion-effects-enabled", Boolean.parseBoolean(value));
                 break;
+            case "prevent-interactions.furnace":
+                config.set("protect.prevent-interactions.furnace", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.chest":
+                config.set("protect.prevent-interactions.chest", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.ender_chest":
+                config.set("protect.prevent-interactions.ender_chest", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.shulker_box":
+                config.set("protect.prevent-interactions.shulker_box", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.button":
+                config.set("protect.prevent-interactions.button", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.lever":
+                config.set("protect.prevent-interactions.lever", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.trapdoor":
+                config.set("protect.prevent-interactions.trapdoor", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.door":
+                config.set("protect.prevent-interactions.door", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.pressure_plate":
+                config.set("protect.prevent-interactions.pressure_plate", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.dispenser":
+                config.set("protect.prevent-interactions.dispenser", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.dropper":
+                config.set("protect.prevent-interactions.dropper", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.hopper":
+                config.set("protect.prevent-interactions.hopper", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.barrel":
+                config.set("protect.prevent-interactions.barrel", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.brewing_stand":
+                config.set("protect.prevent-interactions.brewing_stand", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.beacon":
+                config.set("protect.prevent-interactions.beacon", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.enchanting_table":
+                config.set("protect.prevent-interactions.enchanting_table", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.anvil":
+                config.set("protect.prevent-interactions.anvil", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.cartography_table":
+                config.set("protect.prevent-interactions.cartography_table", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.grindstone":
+                config.set("protect.prevent-interactions.grindstone", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.lectern":
+                config.set("protect.prevent-interactions.lectern", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.smithing_table":
+                config.set("protect.prevent-interactions.smithing_table", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.stonecutter":
+                config.set("protect.prevent-interactions.stonecutter", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.jukebox":
+                config.set("protect.prevent-interactions.jukebox", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.note_block":
+                config.set("protect.prevent-interactions.note_block", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.fence_gate":
+                config.set("protect.prevent-interactions.fence_gate", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.composter":
+                config.set("protect.prevent-interactions.composter", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.beehive":
+                config.set("protect.prevent-interactions.beehive", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.bee_nest":
+                config.set("protect.prevent-interactions.bee_nest", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.daylight_detector":
+                config.set("protect.prevent-interactions.daylight_detector", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.tripwire_hook":
+                config.set("protect.prevent-interactions.tripwire_hook", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.bed":
+                config.set("protect.prevent-interactions.bed", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.bell":
+                config.set("protect.prevent-interactions.bell", Boolean.parseBoolean(value));
+                break;
+            case "prevent-interactions.cauldron":
+                config.set("protect.prevent-interactions.cauldron", Boolean.parseBoolean(value));
+                break;
             default:
                 sender.sendMessage(plugin.getLanguageText("command-unknown-setting","未知设置：{setting}。").replace("{setting}",setting));
                 //sender.sendMessage("未知设置: " + setting);

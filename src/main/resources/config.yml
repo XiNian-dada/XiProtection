@@ -3,119 +3,321 @@ item-check-interval: 1200 # 每60s
 effect-check-interval: 1200 # 每60s
 prefix: "&7[&6XiProtection&7]"
 debug: true
+
 gui:
+  size: 54
   world:
     world: GRASS_BLOCK
     world_the_end: SNOWBALL
     world_nether: DIAMOND_SWORD
-  option:
+  # 第一页配置
+  page-1:
     anti-break:
       item: DIAMOND_PICKAXE
-      slot: 0
+      slot: 9
       name: "&c防止破坏"  # 红色
       function: "anti-break"
     anti-place:
       item: DIAMOND_PICKAXE
-      slot: 1
+      slot: 10
       name: "&6防止放置"  # 黄色
       function: "anti-place"
     always-sun:
       item: GOLDEN_SWORD
-      slot: 2
+      slot: 11
       name: "&e永远晴天"  # 黄色
       function: "always-sun"
     always-rain:
       item: WATER_BUCKET
-      slot: 3
+      slot: 12
       name: "&9永远下雨"  # 蓝色
       function: "always-rain"
     always-day:
       item: GOLDEN_SWORD
-      slot: 4
+      slot: 13
       name: "&a永远白天"  # 绿色
       function: "always-day"
     always-night:
       item: GOLDEN_SWORD
-      slot: 5
+      slot: 14
       name: "&5永远黑夜"  # 紫色
       function: "always-night"
     anti-fire:
       item: FIRE
-      slot: 6
+      slot: 15
       name: "&4防止火灾"  # 深红色
       function: "anti-fire"
     anti-shear:
       item: SHEARS
-      slot: 7
+      slot: 16
       name: "&7防止剪切"  # 灰色
       function: "anti-shear"
     keep-full-hunger:
       item: COOKED_BEEF
-      slot: 8
+      slot: 17
       name: "&2保持饥饿值"  # 深绿色
       function: "keep-full-hunger"
     anti-pvp:
       item: DIAMOND_SWORD
-      slot: 9
+      slot: 18
       name: "&c防止 PvP"  # 红色
       function: "anti-pvp"
     prevent-explosion:
       item: TNT
-      slot: 10
+      slot: 19
       name: "&6防止爆炸"  # 黄色
       function: "prevent-explosion"
     keep-full-health:
       item: GOLDEN_APPLE
-      slot: 11
+      slot: 20
       name: "&d保持生命值"  # 粉色
       function: "keep-full-health"
     prevent-treading:
       item: GRASS_BLOCK
-      slot: 12
+      slot: 21
       name: "&2防止踩踏"  # 深绿色
       function: "prevent-treading"
     prevent-throwables:
       item: ENDER_PEARL
-      slot: 13
+      slot: 22
       name: "&b防止投掷物"  # 浅蓝色
       function: "prevent-throwables"
     keep-items-enabled:
       item: CHEST
-      slot: 14
+      slot: 23
       name: "&6保持物品启用"  # 黄色
       function: "keep-items-enabled"
     banned-commands-enabled:
       item: BARRIER
-      slot: 15
+      slot: 24
       name: "&8禁止命令启用"  # 黑色
       function: "banned-commands-enabled"
     prevent-eating:
       item: COOKED_BEEF
-      slot: 16
+      slot: 25
       name: "&f防止吃食"  # 白色
       function: "prevent-eating"
     prevent-drinking:
       item: POTION
-      slot: 17
+      slot: 26
       name: "&a防止饮水"  # 绿色
       function: "prevent-drinking"
     prevent-potion-effects-enabled:
       item: POTION
-      slot: 18
+      slot: 27
       name: "&9防止药水效果"  # 蓝色
       function: "prevent-potion-effects-enabled"
     keep-potion-effects-enabled:
       item: POTION
-      slot: 19
+      slot: 28
       name: "&d保持药水效果"  # 粉色
       function: "keep-potion-effects-enabled"
     decorations:
       items: GRASS
       name: "&2装饰"  # 绿色
       slots:
-        - 20
-        - 21
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
       function: "decorate"
+    furnace:
+      item: FURNACE
+      slot: 29
+      name: "&7防止使用熔炉"  # 灰色
+      function: "prevent-interactions.furnace"
+    chest:
+      item: CHEST
+      slot: 30
+      name: "&7防止打开箱子"  # 灰色
+      function: "prevent-interactions.chest"
+    ender_chest:
+      item: END_PORTAL_FRAME
+      slot: 31
+      name: "&7防止打开末影箱"  # 灰色
+      function: "prevent-interactions.ender_chest"
+    shulker_box:
+      item: SHULKER_BOX
+      slot: 32
+      name: "&7防止打开潜影盒"  # 灰色
+      function: "prevent-interactions.shulker_box"
+    button:
+      item: STONE_BUTTON
+      slot: 33
+      name: "&7防止按按钮"  # 灰色
+      function: "prevent-interactions.button"
+    lever:
+      item: LEVER
+      slot: 34
+      name: "&7防止拉拉杆"  # 灰色
+      function: "prevent-interactions.lever"
+    trapdoor:
+      item: TRAPDOOR
+      slot: 35
+      name: "&7防止打开活版门"  # 灰色
+      function: "prevent-interactions.trapdoor"
+    door:
+      item: OAK_DOOR
+      slot: 36
+      name: "&7防止开门"  # 灰色
+      function: "prevent-interactions.door"
+    pressure_plate:
+      item: STONE_PRESSURE_PLATE
+      slot: 37
+      name: "&7防止触发压力板"  # 灰色
+      function: "prevent-interactions.pressure_plate"
+    dispenser:
+      item: DISPENSER
+      slot: 38
+      name: "&7防止使用发射器"  # 灰色
+      function: "prevent-interactions.dispenser"
+    dropper:
+      item: DROPPER
+      slot: 39
+      name: "&7防止使用投掷器"  # 灰色
+      function: "prevent-interactions.dropper"
+    hopper:
+      item: HOPPER
+      slot: 40
+      name: "&7防止使用漏斗"  # 灰色
+      function: "prevent-interactions.hopper"
+    barrel:
+      item: BARREL
+      slot: 41
+      name: "&7防止使用木桶"  # 灰色
+      function: "prevent-interactions.barrel"
+    brewing_stand:
+      item: BREWING_STAND
+      slot: 42
+      name: "&7防止使用酿造台"  # 灰色
+      function: "prevent-interactions.brewing_stand"
+    beacon:
+      item: BEACON
+      slot: 43
+      name: "&7防止使用信标"  # 灰色
+      function: "prevent-interactions.beacon"
+    enchanting_table:
+      item: ENCHANTING_TABLE
+      slot: 44
+      name: "&7防止使用附魔台"  # 灰色
+      function: "prevent-interactions.enchanting_table"
+    anvil:
+      item: ANVIL
+      slot: 45
+      name: "&7防止使用铁砧"  # 灰色
+      function: "prevent-interactions.anvil"
+    cartography_table:
+      item: CARTOGRAPHY_TABLE
+      slot: 46
+      name: "&7防止使用制图台"  # 灰色
+      function: "prevent-interactions.cartography_table"
+    grindstone:
+      item: GRINDSTONE
+      slot: 47
+      name: "&7防止使用砂轮"  # 灰色
+      function: "prevent-interactions.grindstone"
+    lectern:
+      item: LECTERN
+      slot: 48
+      name: "&7防止使用讲台"  # 灰色
+      function: "prevent-interactions.lectern"
+    smithing_table:
+      item: SMITHING_TABLE
+      slot: 49
+      name: "&7防止使用锻造台"  # 灰色
+      function: "prevent-interactions.smithing_table"
+    stonecutter:
+      item: STONECUTTER
+      slot: 50
+      name: "&7防止使用切石机"  # 灰色
+      function: "prevent-interactions.stonecutter"
+    jukebox:
+      item: JUKEBOX
+      slot: 51
+      name: "&7防止使用唱片盒"  # 灰色
+      function: "prevent-interactions.jukebox"
+    note_block:
+      item: NOTE_BLOCK
+      slot: 52
+      name: "&7防止使用音符盒"  # 灰色
+      function: "prevent-interactions.note_block"
+    next-page:
+      item: ARROW
+      slot: 53
+      name: "&e下一页"
+      function: "next-page"
+
+  # 第二页配置
+  page-2:
+    decorations_2:
+      items: GRASS
+      name: "&2装饰"  # 绿色
+      slots:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+      function: "decorate"
+    fence_gate:
+      item: FENCE_GATE
+      slot: 8
+      name: "&7防止使用栅栏门"  # 灰色
+      function: "prevent-interactions.fence_gate"
+    composter:
+      item: COMPOSTER
+      slot: 9
+      name: "&7防止使用堆肥箱"  # 灰色
+      function: "prevent-interactions.composter"
+    beehive:
+      item: BEEHIVE
+      slot: 10
+      name: "&7防止使用蜂箱"  # 灰色
+      function: "prevent-interactions.beehive"
+    bee_nest:
+      item: BEE_NEST
+      slot: 11
+      name: "&7防止使用蜂巢"  # 灰色
+      function: "prevent-interactions.bee_nest"
+    daylight_detector:
+      item: DAYLIGHT_DETECTOR
+      slot: 12
+      name: "&7防止使用日光传感器"  # 灰色
+      function: "prevent-interactions.daylight_detector"
+    tripwire_hook:
+      item: TRIPWIRE_HOOK
+      slot: 13
+      name: "&7防止触发拉线"  # 灰色
+      function: "prevent-interactions.tripwire_hook"
+    bed:
+      item: BED
+      slot: 14
+      name: "&7防止使用床"  # 灰色
+      function: "prevent-interactions.bed"
+    bell:
+      item: BELL
+      slot: 15
+      name: "&7防止敲钟"  # 灰色
+      function: "prevent-interactions.bell"
+    cauldron:
+      item: CAULDRON
+      slot: 16
+      name: "&7防止使用锅"
+      function: "prevent-interactions.cauldron"
+    previous_page:
+      item: ARROW
+      slot: 45
+      name: "&7上一页"
+      function: "previous-page"
+
+
 consumables:
   food:
     - APPLE
