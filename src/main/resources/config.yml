@@ -5,7 +5,8 @@ prefix: "&7[&6XiProtection&7]"
 debug: true
 
 gui:
-  size: 54
+  world-menu-title: "选择世界"
+  setting-menu-title: "配置选项 - {world} - 第 {page} 页"
   world:
     world: GRASS_BLOCK
     world_the_end: SNOWBALL

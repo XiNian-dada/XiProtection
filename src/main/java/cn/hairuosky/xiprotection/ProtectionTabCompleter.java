@@ -111,9 +111,9 @@ public class ProtectionTabCompleter implements TabCompleter {
      * @param key    数据键名（例如 "item" 或 "effect"）
      * @return 列表结果
      */
+    @SuppressWarnings("unchecked")
     private List<String> getConfigItems(FileConfiguration config, String path, String key) {
         List<Map<String, Object>> entries = (List<Map<String, Object>>) config.getList(path, Collections.emptyList());
-        if (entries == null) return Collections.emptyList();
         return entries.stream()
                 .map(entry -> (String) entry.get(key))
                 .filter(item -> item != null && !item.isEmpty())
@@ -124,7 +124,6 @@ public class ProtectionTabCompleter implements TabCompleter {
      */
     private List<String> getAllPotionEffects() {
         return Arrays.stream(PotionEffectType.values())
-                .filter(effect -> effect != null && effect.getName() != null)
                 .map(PotionEffectType::getName)
                 .collect(Collectors.toList());
     }

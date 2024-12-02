@@ -23,7 +23,7 @@ import java.util.*;
 *
 *
 *  */
-//TODO 交互禁止
+//TODO Languages.yml
 public final class XiProtection extends JavaPlugin {
     private ProtectionListener protectionListener;
     private final Map<World, FileConfiguration> worldConfigs = new HashMap<>();
@@ -213,21 +213,38 @@ public final class XiProtection extends JavaPlugin {
 
     public void saveWorldConfig(World world) {
         FileConfiguration config = worldConfigs.get(world);
+
         if (config != null) {
-            // 指定保存路径为 worlds 文件夹
+            // 获取保存路径
             File file = new File(new File(getDataFolder(), "worlds"), world.getName() + ".yml");
+
+            // 打印日志，显示配置文件路径和是否存在
+            getLogger().info("准备保存世界 " + world.getName() + " 的配置文件。保存路径：" + file.getAbsolutePath());
+
             try {
+                // 输出保存前的配置内容（可以根据需要打印部分内容，避免过多日志）
+                getLogger().info("保存前配置内容：" + config.getKeys(true));
+
+                // 保存配置
                 config.save(file);
-                getLogger().info(getOnEnableText("save-config-success","成功保存世界 {world} 的配置文件！").replace("{world}",world.getName()));
+
+                // 输出保存后的日志，确认文件保存成功
+                getLogger().info(getOnEnableText("save-config-success", "成功保存世界 {world} 的配置文件！")
+                        .replace("{world}", world.getName()));
+
             } catch (IOException e) {
-                getLogger().severe(getOnEnableText("save-config-fail","无法保存世界 {world} 的配置文件！").replace("{world}",world.getName()));
-                //getLogger().severe("无法保存配置文件: " + file.getName());
+                // 失败时记录详细的错误信息
+                getLogger().severe(getOnEnableText("save-config-fail", "无法保存世界 {world} 的配置文件！")
+                        .replace("{world}", world.getName()));
+                e.printStackTrace();  // 输出堆栈信息
             }
         } else {
-            getLogger().severe(getOnEnableText("config-not-found","未找到世界 {world} 的配置文件，请检查控制台和对应文件夹！").replace("{world}",world.getName()));
-            //getLogger().warning("未找到配置文件: " + world.getName());
+            // 记录找不到配置文件的错误
+            getLogger().severe(getOnEnableText("config-not-found", "未找到世界 {world} 的配置文件，请检查控制台和对应文件夹！")
+                    .replace("{world}", world.getName()));
         }
     }
+
 
     public void debugPrint(String text, int importance) {
         if (debugModeSwitch) {
@@ -276,7 +293,7 @@ public final class XiProtection extends JavaPlugin {
         HandlerList.unregisterAll(protectionListener);
         worldConfigs.clear(); // 清空当前加载的配置
         loadWorldConfigs();   // 重新加载配置文件
-
+        reloadConfig();
         // 重新加载全局配置
         loadGlobalConfig();
         loadLanguages();
