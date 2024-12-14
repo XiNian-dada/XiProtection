@@ -15,6 +15,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ProtectionGUI implements Listener {
 
@@ -24,11 +26,13 @@ public class ProtectionGUI implements Listener {
     private String setting_title;
     public ProtectionGUI(XiProtection plugin) {
         this.plugin = plugin;
+        // 初始化 world_title，默认值为 "选择世界"
+        world_title = plugin.getConfig().getString("gui.world-menu-title", "选择世界").trim();
     }
 
     public void openWorldSelectionMenu(Player player) {
         FileConfiguration config = plugin.getConfig();
-        world_title = config.getString("gui.world-menu-title","选择世界");
+        world_title = config.getString("gui.world-menu-title", "选择世界").trim(); // 去除空格
         Inventory inventory = Bukkit.createInventory(null, 27, world_title);
 
         // 获取所有已加载的世界
@@ -57,12 +61,17 @@ public class ProtectionGUI implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getView().getTitle().equals(world_title)) {
+
+
+        String eventTitle = event.getView().getTitle().trim(); // 去除空格
+
+        if (eventTitle.equals(world_title)) {
+
             event.setCancelled(true); // 取消点击事件以防止关闭
 
             Player player = (Player) event.getWhoClicked();
-            ItemStack currentItem = event.getCurrentItem();
 
+            ItemStack currentItem = event.getCurrentItem();
             if (currentItem == null || currentItem.getType() == Material.AIR) {
                 return; // 如果点击的是空白项，则直接返回
             }
@@ -75,11 +84,15 @@ public class ProtectionGUI implements Listener {
                 if (world != null) {
                     openSettingsMenu_1(player, world); // 打开第一页设置菜单
                 } else {
+                    plugin.getLogger().info("World not found: " + worldName); // 记录未找到的世界
                     player.sendMessage("未找到世界: " + worldName);
                 }
+            } else {
+                plugin.getLogger().info("Clicked item has no metadata"); // 记录点击物品没有元数据
             }
         }
     }
+
 
     // 打开第一页设置菜单
     private void openSettingsMenu_1(Player player, World world) {
@@ -122,7 +135,7 @@ public class ProtectionGUI implements Listener {
 
         FileConfiguration config = plugin.getConfig();
         setting_title = config.getString("gui.setting-menu-title","配置选项 - {world} - 第 {page} 页")
-                .replace("{world}",world.getName()).replace("{page}","1");
+                .replace("{world}",world.getName()).replace("{page}","2");
         Inventory settingsInventory = Bukkit.createInventory(null, 54, setting_title);
 
         // 读取第二页的配置并设置物品项
@@ -243,36 +256,71 @@ public class ProtectionGUI implements Listener {
 //TODO 检测硬编码需要修改，否则可能导致修改标题后无效。
     @EventHandler
     public void onSettingsInventoryClick(InventoryClickEvent event) {
-        if (event.getView().getTitle().startsWith("配置选项 - ")) {
+        String title = event.getView().getTitle();
+        String titleTemplate = plugin.getConfig().getString("gui.setting-menu-title", "配置选项 - {world} - 第 {page} 页");
+
+        plugin.getLogger().info("Inventory title: " + title);
+        plugin.getLogger().info("Title template: " + titleTemplate);
+
+        // 手动构建正则表达式
+        String regex = titleTemplate
+                .replace("{world}", "(.+?)")  // 使用非贪婪匹配
+                .replace("{page}", "(\\d+)");  // 匹配数字
+
+        plugin.getLogger().info("Constructed regex: " + regex);
+
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(title);
+
+        if (matcher.matches()) {
+            plugin.getLogger().info("Title matches the pattern.");
             event.setCancelled(true);  // 防止物品被移除
 
             Player player = (Player) event.getWhoClicked();
-            String worldName = event.getView().getTitle().replace("配置选项 - ", "").split(" ")[0];
+            String worldName = matcher.group(1);
             World world = Bukkit.getWorld(worldName);
+
+            plugin.getLogger().info("World name extracted from title: " + worldName);
+            plugin.getLogger().info("World object: " + world);
 
             if (world != null) {
                 ItemStack clickedItem = event.getCurrentItem();
                 if (clickedItem == null || clickedItem.getType() == Material.AIR) {
+                    plugin.getLogger().info("Clicked item is null or air, returning.");
                     return;  // 空点击则返回
                 }
 
                 ItemMeta meta = clickedItem.getItemMeta();
                 if (meta != null && meta.hasDisplayName()) {
+                    plugin.getLogger().info("Clicked item has display name.");
+
                     // 获取物品的 function 配置
-                    String function = getItemFunction(event.getSlot(), (Player)event.getViewers());
+                    String function = getItemFunction(event.getSlot(), player);
+
+                    plugin.getLogger().info("Item function: " + function);
 
                     if ("next-page".equals(function)) {
+                        plugin.getLogger().info("Opening settings menu page 2.");
                         openSettingsMenu_2(player, world); // 转到第二页
                     } else if ("previous-page".equals(function)) {
+                        plugin.getLogger().info("Opening settings menu page 1.");
                         openSettingsMenu_1(player, world); // 返回第一页
                     } else {
+                        plugin.getLogger().info("Toggling setting for item.");
                         // 否则执行设置切换
                         toggleSetting(player, event.getSlot(), world);
                     }
+                } else {
+                    plugin.getLogger().info("Clicked item does not have a display name.");
                 }
+            } else {
+                plugin.getLogger().warning("World with name " + worldName + " does not exist.");
             }
+        } else {
+            plugin.getLogger().info("Title does not match the pattern.");
         }
     }
+
 
     private String getItemFunction(int slot, Player player) {
         FileConfiguration config = plugin.getConfig();

@@ -196,14 +196,17 @@ public final class XiProtection extends JavaPlugin {
             if (worldConfigFile.exists()) {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(worldConfigFile);
                 worldConfigs.put(world, config);
-                getLogger().info(getOnEnableText("load-config-success","已成功加载 {world} 的配置文件！").replace("{world}",world.getName()));
-                //getLogger().info("已加载配置文件: " + worldConfigFile.getAbsolutePath());
+
+                // 添加调试日志
+                getLogger().info("加载的世界 " + world.getName() + " 的配置文件内容：" + config.getKeys(true));
+
+                getLogger().info(getOnEnableText("load-config-success", "已成功加载 {world} 的配置文件！").replace("{world}", world.getName()));
             } else {
-                getLogger().warning(getOnEnableText("load-config-fail","未找到世界 {world} 的配置文件！").replace("{world}",world.getName()));
-                //getLogger().warning("未找到配置文件: " + worldConfigFile.getAbsolutePath());
+                getLogger().warning(getOnEnableText("load-config-fail", "未找到世界 {world} 的配置文件！").replace("{world}", world.getName()));
             }
         }
     }
+
 
 
 
