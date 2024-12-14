@@ -41,8 +41,8 @@ public class ProtectionGUI implements Listener {
             // 从配置中获取物品名称，如果没有则使用默认值
             String materialName = config.getString("gui.world." + worldName, "GRASS_BLOCK").toUpperCase(); // 确保为大写
             Material material = Material.getMaterial(materialName);
-            plugin.getLogger().info("World found: " + worldName);
-            plugin.getLogger().info("Material name for " + worldName + ": " + materialName);
+            plugin.debugPrint("World found: " + worldName,1);
+            plugin.debugPrint("Material name for " + worldName + ": " + materialName,1);
 
             if (material != null) {
                 ItemStack item = new ItemStack(material);
@@ -85,10 +85,10 @@ public class ProtectionGUI implements Listener {
                     openSettingsMenu_1(player, world); // 打开第一页设置菜单
                 } else {
                     plugin.getLogger().info("World not found: " + worldName); // 记录未找到的世界
-                    player.sendMessage("未找到世界: " + worldName);
+                    player.sendMessage(plugin.getLanguageText("world-not-found", "未找到世界： {world}！").replace("{world}", worldName));
                 }
             } else {
-                plugin.getLogger().info("Clicked item has no metadata"); // 记录点击物品没有元数据
+                plugin.debugPrint("Clicked item has no metadata",1); // 记录点击物品没有元数据
             }
         }
     }
@@ -202,7 +202,7 @@ public class ProtectionGUI implements Listener {
         if (meta != null) {
             // 根据状态设置颜色和加粗样式
             ChatColor color = value ? ChatColor.GREEN : ChatColor.RED;
-            String status = (value ? "开启" : "关闭");
+            String status = (value ? plugin.getLanguageText("enable", "开启") : plugin.getLanguageText("disable", "关闭"));
 
             // 设置加粗样式
             meta.setDisplayName(name + ": " + color + ChatColor.BOLD + status);
@@ -253,71 +253,70 @@ public class ProtectionGUI implements Listener {
             inventory.setItem(previousPageSlot, previousPage); // 设置上一页按钮
         }
     }
-//TODO 检测硬编码需要修改，否则可能导致修改标题后无效。
     @EventHandler
     public void onSettingsInventoryClick(InventoryClickEvent event) {
         String title = event.getView().getTitle();
         String titleTemplate = plugin.getConfig().getString("gui.setting-menu-title", "配置选项 - {world} - 第 {page} 页");
 
-        plugin.getLogger().info("Inventory title: " + title);
-        plugin.getLogger().info("Title template: " + titleTemplate);
+        plugin.debugPrint("Inventory title: " + title,1);
+        plugin.debugPrint("Title template: " + titleTemplate,1);
 
         // 手动构建正则表达式
         String regex = titleTemplate
                 .replace("{world}", "(.+?)")  // 使用非贪婪匹配
                 .replace("{page}", "(\\d+)");  // 匹配数字
 
-        plugin.getLogger().info("Constructed regex: " + regex);
+        plugin.debugPrint("Constructed regex: " + regex,1);
 
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(title);
 
         if (matcher.matches()) {
-            plugin.getLogger().info("Title matches the pattern.");
+            plugin.debugPrint("Title matches the pattern.",1);
             event.setCancelled(true);  // 防止物品被移除
 
             Player player = (Player) event.getWhoClicked();
             String worldName = matcher.group(1);
             World world = Bukkit.getWorld(worldName);
 
-            plugin.getLogger().info("World name extracted from title: " + worldName);
-            plugin.getLogger().info("World object: " + world);
+            plugin.debugPrint("World name extracted from title: " + worldName,1);
+            plugin.debugPrint("World object: " + world,1);
 
             if (world != null) {
                 ItemStack clickedItem = event.getCurrentItem();
                 if (clickedItem == null || clickedItem.getType() == Material.AIR) {
-                    plugin.getLogger().info("Clicked item is null or air, returning.");
+                    plugin.debugPrint("Clicked item is null or air, returning.",1);
                     return;  // 空点击则返回
                 }
 
                 ItemMeta meta = clickedItem.getItemMeta();
                 if (meta != null && meta.hasDisplayName()) {
-                    plugin.getLogger().info("Clicked item has display name.");
+                    plugin.debugPrint("Clicked item has display name.",1);
 
                     // 获取物品的 function 配置
                     String function = getItemFunction(event.getSlot(), player);
 
-                    plugin.getLogger().info("Item function: " + function);
+                    plugin.debugPrint("Item function: " + function,1);
 
                     if ("next-page".equals(function)) {
-                        plugin.getLogger().info("Opening settings menu page 2.");
+                        plugin.debugPrint("Opening settings menu page 2.",1);
                         openSettingsMenu_2(player, world); // 转到第二页
                     } else if ("previous-page".equals(function)) {
-                        plugin.getLogger().info("Opening settings menu page 1.");
+                        plugin.debugPrint("Opening settings menu page 1.",1);
                         openSettingsMenu_1(player, world); // 返回第一页
                     } else {
-                        plugin.getLogger().info("Toggling setting for item.");
+                        plugin.debugPrint("Toggling setting for item.",1);
                         // 否则执行设置切换
                         toggleSetting(player, event.getSlot(), world);
                     }
                 } else {
-                    plugin.getLogger().info("Clicked item does not have a display name.");
+                    plugin.debugPrint("Clicked item does not have a display name.",1);
                 }
             } else {
-                plugin.getLogger().warning("World with name " + worldName + " does not exist.");
+                plugin.getLogger().warning(plugin.getLanguageText("world-not-found","未找到世界： {world}！").replace("{world}", worldName));
             }
         } else {
-            plugin.getLogger().info("Title does not match the pattern.");
+            plugin.debugPrint("Title does not match the pattern.",1);
         }
     }
 
@@ -350,7 +349,7 @@ public class ProtectionGUI implements Listener {
         // 遍历当前页的配置
         ConfigurationSection pageSection = mainConfig.getConfigurationSection("gui.page-" + page);
         if (pageSection == null) {
-            player.sendMessage("无法找到当前页面的配置！");
+            player.sendMessage(plugin.getLanguageText("page-config-not-found","未找到当前页面的配置！"));
             return;
         }
 
@@ -366,7 +365,9 @@ public class ProtectionGUI implements Listener {
                 boolean currentValue = worldConfig.getBoolean("protect." + function, false);
                 worldConfig.set("protect." + function, !currentValue); // 切换值
                 plugin.saveWorldConfig(world); // 保存世界配置文件
-                player.sendMessage(function + " 已设置为 " + (!currentValue ? "开启" : "关闭"));
+                player.sendMessage(plugin.getLanguageText("setting-toggled","已切换 {setting} 为 {value}")
+                        .replace("{setting}", function)
+                        .replace("{value}", !currentValue ? plugin.getLanguageText("enable", "开启") : plugin.getLanguageText("disable", "关闭")));
 
                 // 重新打开当前页面的设置菜单
                 if (page == 1) {
@@ -378,7 +379,7 @@ public class ProtectionGUI implements Listener {
             }
         }
 
-        player.sendMessage("未找到匹配的设置项！");
+        player.sendMessage(plugin.getLanguageText("setting-not-found","未找到匹配的设置！"));
     }
 
 

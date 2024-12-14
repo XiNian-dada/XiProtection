@@ -15,7 +15,14 @@ load-config-fail: "未找到世界 {world} 的配置文件！"
 save-config-success: "成功保存世界 {world} 的配置文件！"
 save-config-fail: "无法保存世界 {world} 的配置文件！"
 config-not-found: "未找到世界 {world} 的配置文件，请检查控制台和对应文件夹！"
-
+invalid-consumable-item: "物品 {item} 不是可消耗物品！"
+invalid-drinkable-item: "物品 {item} 不是可饮用物品！"
+world-not-found: "未找到世界： {world}！"
+page-config-not-found: "未找到当前页面的配置！"
+setting-toggled: "已切换 {setting} 为 {value}！"
+setting-not-found: "未找到匹配的设置！"
+enable: "开启"
+disable: "关闭"
 #####################
 #      command      #
 #####################

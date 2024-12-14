@@ -222,11 +222,11 @@ public final class XiProtection extends JavaPlugin {
             File file = new File(new File(getDataFolder(), "worlds"), world.getName() + ".yml");
 
             // 打印日志，显示配置文件路径和是否存在
-            getLogger().info("准备保存世界 " + world.getName() + " 的配置文件。保存路径：" + file.getAbsolutePath());
+            debugPrint("准备保存世界 " + world.getName() + " 的配置文件。保存路径：" + file.getAbsolutePath(),1);
 
             try {
                 // 输出保存前的配置内容（可以根据需要打印部分内容，避免过多日志）
-                getLogger().info("保存前配置内容：" + config.getKeys(true));
+                debugPrint("保存前配置内容：" + config.getKeys(true),1);
 
                 // 保存配置
                 config.save(file);
@@ -319,7 +319,7 @@ public final class XiProtection extends JavaPlugin {
             if (material != null) {
                 foodItems.add(material);
             } else {
-                getLogger().warning("无效的食物物品类型: " + item);
+                getLogger().warning(getOnEnableText("invalid-consumable-item", "物品 {item} 不是可消耗物品。 ").replace("{item}",item));
             }
         }
 
@@ -328,7 +328,7 @@ public final class XiProtection extends JavaPlugin {
             if (material != null) {
                 drinkItems.add(material);
             } else {
-                getLogger().warning("无效的饮品物品类型: " + item);
+                getLogger().warning(getOnEnableText("invalid-drinkable-item","物品 {item} 不是可饮用物品。").replace("{item}",item));
             }
         }
     }
