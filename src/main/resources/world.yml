@@ -62,7 +62,6 @@ protect:
     beehive: true         # 禁止使用蜂巢
     bee_nest: true        # 禁止使用蜂巢巢穴
     daylight_detector: true # 禁止修改阳光探测器
-    tripwire_hook: true   # 禁止触发绊线钩
     bed: true             # 禁止右键床
     bell: true            # 禁止敲钟
     cauldron: true        # 禁止使用炼药锅

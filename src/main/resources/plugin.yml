@@ -26,6 +26,8 @@ permissions:
       - xiprotection.bypass.banned-commands
       - xiprotection.bypass.eating
       - xiprotection.bypass.drinking
+      - xiprotection.bypass.effects
+      - xiprotection.bypass.interactions
   xiprotection.bypass.break:
     description: "允许玩家在受保护的世界中破坏方块"
     default: op
@@ -69,5 +71,7 @@ permissions:
     description: "允许玩家在受保护的世界中无视药水效果配置"
     default: op
   xiprotection.bypass.interactions:
-    description: "运行玩家在受保护的世界中和某些东西交互"
+    description: "允许玩家在受保护的世界中和某些东西交互"
+    default: op
+
 

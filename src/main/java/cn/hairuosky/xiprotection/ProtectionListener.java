@@ -268,8 +268,6 @@ public class ProtectionListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        //TODO 压力板检测无效
-        //TODO 拌线勾可正常使用，但是无法右键
         Player player = event.getPlayer();
         Block block = event.getClickedBlock();
 
@@ -324,6 +322,11 @@ public class ProtectionListener implements Listener {
                     cancelInteraction(player, "trapdoor", event);
                     return;
                 }
+                // 压力板
+                if (block.getType().name().contains("PRESSURE_PLATE") && interactConfig.getBoolean("pressure_plate", false)) {
+                    cancelInteraction(player, "pressure_plate", event);
+                    return;
+                }
                 if (block.getType().name().contains("DOOR") && interactConfig.getBoolean("door", false)) {
                     cancelInteraction(player, "door", event);
                     return;
@@ -341,10 +344,6 @@ public class ProtectionListener implements Listener {
                     }
                     if (block.getType() == Material.LEVER && interactConfig.getBoolean("lever", false)) {
                         cancelInteraction(player, "lever", event);
-                        return;
-                    }
-                    if (!isLegacy && block.getType() == Material.TRIPWIRE_HOOK && interactConfig.getBoolean("tripwire_hook", false)) {
-                        cancelInteraction(player, "tripwire_hook", event);
                         return;
                     }
                 }
@@ -390,7 +389,6 @@ public class ProtectionListener implements Listener {
             }
         }
     }
-
     // 取消交互并发送消息的方法
     private void cancelInteraction(Player player, String blockName, PlayerInteractEvent event) {
         event.setCancelled(true);
