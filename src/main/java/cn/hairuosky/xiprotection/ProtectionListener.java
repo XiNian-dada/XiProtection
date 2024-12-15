@@ -39,32 +39,42 @@ public class ProtectionListener implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
+        // 获取破坏方块的玩家和所在世界
         Player player = event.getPlayer();
         World world = player.getWorld();
+        // 根据世界获取插件配置
         FileConfiguration config = plugin.getWorldConfig(world);
 
+        // 如果玩家拥有以下任意权限，则允许破坏方块，不再执行后续操作
         if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.break")) return;
 
+        // 检查配置是否存在且启用了世界保护和禁止方块破坏功能
         if (config != null && config.getBoolean("enable") && config.getBoolean("protect.anti-break")) {
+            // 禁止方块破坏行为
             event.setCancelled(true);
+            // 发送消息通知玩家不能破坏方块
             player.sendMessage(plugin.getLanguageText("cannot-break","你无法在这个世界破坏方块！"));
-            //player.sendMessage("你无法在这个世界破坏方块。");
         }
     }
 
-
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
+        // 获取放置方块的玩家
         Player player = event.getPlayer();
+        // 获取玩家所在的世界上
         World world = player.getWorld();
+        // 获取该世界的配置文件
         FileConfiguration config = plugin.getWorldConfig(world);
 
+        // 检查玩家是否有绕过所有保护或放置保护的权限，如果有，则直接返回，允许放置方块
         if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.place")) return;
 
+        // 检查世界配置是否存在，并且是否启用了保护功能和禁止放置方块的功能
         if (config != null && config.getBoolean("enable") && config.getBoolean("protect.anti-place")) {
+            // 取消方块放置事件，阻止玩家放置方块
             event.setCancelled(true);
+            // 向玩家发送不能放置方块的消息
             player.sendMessage(plugin.getLanguageText("cannot-place","你无法在这个世界放置方块！"));
-            //player.sendMessage("你无法在这个世界放置方块。");
         }
     }
     @EventHandler
@@ -76,7 +86,7 @@ public class ProtectionListener implements Listener {
             event.setCancelled(true);
         }
     }
-    // 定时检查并保持天气和时间状态
+
     public void updateWorldSettings() {
         for (World world : Bukkit.getWorlds()) {
             FileConfiguration config = plugin.getWorldConfig(world);
@@ -126,7 +136,6 @@ public class ProtectionListener implements Listener {
             event.setCancelled(true);
             if (event.getEntity().getType().equals(EntityType.SHEEP)) {
                 player.sendMessage(plugin.getLanguageText("cannot-shear","你不能在这个世界剪羊毛！"));
-                //player.sendMessage("你无法在这个世界剪羊毛。");
             }
         }
     }
@@ -522,11 +531,11 @@ public class ProtectionListener implements Listener {
         int duration = plugin.getConfig().getInt("effect-check-interval", 600);
 
         // 日志：记录方法调用和基本信息
-        plugin.getLogger().info("Handling potion effects for player: " + player.getName() + " in world: " + world.getName());
+        plugin.debugPrint("Handling potion effects for player: " + player.getName() + " in world: " + world.getName(),1);
 
         // 权限检查
         if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.effects")) {
-            plugin.getLogger().info("Player " + player.getName() + " has bypass permission. Skipping potion effect handling.");
+            plugin.debugPrint("Player " + player.getName() + " has bypass permission. Skipping potion effect handling.",1);
             return;
         }
 
@@ -534,24 +543,24 @@ public class ProtectionListener implements Listener {
             // 检查是否启用功能
             boolean isEnabled = config.getBoolean("enable", false);
             if (!isEnabled) {
-                plugin.getLogger().info("Potion effect handling is disabled in world: " + world.getName());
+                plugin.debugPrint("Potion effect handling is disabled in world: " + world.getName(),1);
                 return;
             }
 
             boolean preventEffectsEnabled = config.getBoolean("protect.prevent-potion-effects-enabled", false);
             boolean keepEffectsEnabled = config.getBoolean("protect.keep-potion-effects-enabled", false);
 
-            plugin.getLogger().info("Potion effects settings: preventEffectsEnabled=" + preventEffectsEnabled + ", keepEffectsEnabled=" + keepEffectsEnabled);
+            plugin.debugPrint("Potion effects settings: preventEffectsEnabled=" + preventEffectsEnabled + ", keepEffectsEnabled=" + keepEffectsEnabled,1);
 
             Set<String> preventEffectsSet = new HashSet<>(config.getStringList("protect.prevent-potion-effects"));
 
             // 日志：记录屏蔽效果列表
-            plugin.getLogger().info("Effects to prevent: " + preventEffectsSet);
+            plugin.debugPrint("Effects to prevent: " + preventEffectsSet,1);
 
             // 处理保持的药水效果
             if (keepEffectsEnabled) {
                 List<Map<?, ?>> keepEffectsList = config.getMapList("protect.keep-potion-effects");
-                plugin.getLogger().info("Effects to keep: " + keepEffectsList);
+                plugin.debugPrint("Effects to keep: " + keepEffectsList,1);
 
                 for (Map<?, ?> effectMap : keepEffectsList) {
                     String effectName = (String) effectMap.get("effect");
@@ -561,31 +570,31 @@ public class ProtectionListener implements Listener {
                     PotionEffectType effectType = PotionEffectType.getByName(effectName);
                     if (effectType != null && level != null) {
                         player.addPotionEffect(new PotionEffect(effectType, duration + 100, level - 1, true, false));
-                        plugin.getLogger().info("Applied potion effect: " + effectName + ", level: " + level);
+                        plugin.debugPrint("Applied potion effect: " + effectName + ", level: " + level,1);
                     } else {
-                        plugin.getLogger().warning("Failed to apply potion effect: " + effectName + ". Please check the configuration.");
+                        plugin.debugPrint("Failed to apply potion effect: " + effectName + ". Please check the configuration.",2);
                     }
                 }
             }
 
             // 屏蔽药水效果
             if (preventEffectsEnabled) {
-                plugin.getLogger().info("Checking active potion effects for removal.");
+                plugin.debugPrint("Checking active potion effects for removal.",1);
                 for (PotionEffect potionEffect : player.getActivePotionEffects()) {
                     String potionEffectName = potionEffect.getType().getName();
                     boolean isPrevented = preventEffectsSet.contains(potionEffectName);
 
                     if (isPrevented) {
                         player.removePotionEffect(potionEffect.getType());
-                        plugin.getLogger().info("Removed potion effect: " + potionEffectName);
+                        plugin.debugPrint("Removed potion effect: " + potionEffectName,1);
                     } else {
-                        plugin.getLogger().info("Potion effect not prevented: " + potionEffectName);
+                        plugin.debugPrint("Potion effect not prevented: " + potionEffectName,1);
                     }
                 }
             }
         } else {
-            plugin.getLogger().warning("Configuration for world " + world.getName() + " not found. Please check plugin setup.");
-            notifyOps(world, "配置未找到，请检查插件设置。");
+            plugin.getLogger().warning(plugin.getLanguageText("potion-config-not-found","未找到世界 {world} 的药水配置！").replace("{world}", world.getName()));
+            notifyOps(world, plugin.getLanguageText("potion-config-not-found","未找到世界 {world} 的药水配置！").replace("{world}", world.getName()));
         }
     }
 
@@ -597,7 +606,7 @@ public class ProtectionListener implements Listener {
      * @param type   物品类型（语言键）
      */
     private void sendCannotInteractMessage(Player player, String type) {
-        String defaultMessage = "你不能使用这个物品！"; // 默认消息
+        String defaultMessage = plugin.getLanguageText("cannot-use-default","&c你不能这样做！"); // 默认消息
         String messageKey = "cannot-use-" + type;
         player.sendMessage(plugin.getLanguageText(messageKey, defaultMessage));
     }
@@ -615,7 +624,8 @@ public class ProtectionListener implements Listener {
 
         // 如果没有 OP 玩家，发送给所有普通玩家
         if (!hasOp) {
-            String warningMessage = "请联系服务器管理员: " + message;
+            String warningMessage = plugin.getLanguageText("notify-ops","&c请联系服务器管理员：{message}")
+                    .replace("{message}", message);
             for (Player player : world.getPlayers()) {
                 player.sendMessage(warningMessage);
             }
