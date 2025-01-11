@@ -367,7 +367,7 @@ public class ProtectionGUI implements Listener {
                 plugin.saveWorldConfig(world); // 保存世界配置文件
                 player.sendMessage(plugin.getLanguageText("setting-toggled","已切换 {setting} 为 {value}")
                         .replace("{setting}", function)
-                        .replace("{value}", !currentValue ? plugin.getLanguageText("enable", "开启") : plugin.getLanguageText("disable", "关闭")));
+                        .replace("{value}", !currentValue ? plugin.getOnEnableText("enable", "开启") : plugin.getOnEnableText("disable", "关闭")));
 
                 // 重新打开当前页面的设置菜单
                 if (page == 1) {

@@ -19,11 +19,11 @@ import java.util.*;
 * 测试记录：
 * Listeners & Functions 全部可用
 * Commands 可用
-*
+* 理论上已经完全完事了
 *
 *
 *  */
-//TODO Languages.yml
+
 public final class XiProtection extends JavaPlugin {
     private ProtectionListener protectionListener;
     private final Map<World, FileConfiguration> worldConfigs = new HashMap<>();
