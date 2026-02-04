@@ -215,7 +215,7 @@ public class ProtectionGUI implements Listener {
 
     private boolean getConfigValue(World world, String setting) {
         FileConfiguration config = plugin.getWorldConfig(world);
-        return config.getBoolean("protect." + setting, false);
+        return config != null && config.getBoolean("protect." + setting, false);
     }
 
     private void setPaginationButtons(Inventory inventory, int page) {
@@ -342,6 +342,12 @@ public class ProtectionGUI implements Listener {
     private void toggleSetting(Player player, int slot, World world) {
         FileConfiguration worldConfig = plugin.getWorldConfig(world);
         FileConfiguration mainConfig = plugin.getConfig();
+
+        // 检查世界配置是否存在
+        if (worldConfig == null) {
+            player.sendMessage(plugin.getLanguageText("config-not-found","未找到世界配置文件！"));
+            return;
+        }
 
         // 获取玩家当前页面
         int page = playerPageMap.getOrDefault(player.getUniqueId(), 1); // 默认是第1页

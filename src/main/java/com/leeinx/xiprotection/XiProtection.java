@@ -187,6 +187,16 @@ public class XiProtection extends JavaPlugin {
                 getLogger().info("已成功加载 " + world.getName() + " 的配置文件");
             } else {
                 getLogger().warning("未找到世界 " + world.getName() + " 的配置文件！");
+                // 为没有配置文件的世界创建一个默认配置
+                FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "worlds" + File.separator + world.getName() + ".yml"));
+                worldConfigs.put(world, defaultConfig);
+                // 尝试创建配置文件
+                try {
+                    copyDefaultConfig(worldConfigFile);
+                    getLogger().info("已为世界 " + world.getName() + " 创建配置文件");
+                } catch (IOException e) {
+                    getLogger().severe("无法为世界 " + world.getName() + " 创建配置文件，错误：" + e.getMessage());
+                }
             }
         }
     }
@@ -228,16 +238,16 @@ public class XiProtection extends JavaPlugin {
         if (debugModeSwitch) {
             switch (importance) {
                 case 1:
-                    getLogger().info(prefix + text);
+                    getLogger().info(text);
                     break; // 添加 break 语句
                 case 2:
-                    getLogger().warning(prefix + text);
+                    getLogger().warning(text);
                     break; // 添加 break 语句
                 case 3:
-                    getLogger().severe(prefix + text);
+                    getLogger().severe(text);
                     break; // 添加 break 语句
                 default:
-                    getLogger().info(prefix + "Unknown importance level: " + importance); // 可选：处理未知重要性
+                    getLogger().info("Unknown importance level: " + importance); // 可选：处理未知重要性
             }
         }
     }

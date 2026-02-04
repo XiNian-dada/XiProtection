@@ -29,7 +29,7 @@ public class ProtectionTabCompleter implements TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
-        plugin.getLogger().info("Tab completion request: " + Arrays.toString(args));
+        plugin.debugPrint("Tab completion request: " + Arrays.toString(args), 1);
 
         if (args.length == 1) {
             return getFirstLevelCommands();
