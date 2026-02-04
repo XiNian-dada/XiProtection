@@ -205,7 +205,23 @@ public class XiProtection extends JavaPlugin {
 
 
     public FileConfiguration getWorldConfig(World world) {
-        return worldConfigs.get(world);
+        FileConfiguration config = worldConfigs.get(world);
+        if (config == null) {
+            // 如果配置不存在，尝试创建并加载
+            File worldsFolder = new File(getDataFolder(), "worlds");
+            File worldConfigFile = new File(worldsFolder, world.getName() + ".yml");
+            if (!worldConfigFile.exists()) {
+                try {
+                    copyDefaultConfig(worldConfigFile);
+                    getLogger().info("已为世界 " + world.getName() + " 创建配置文件");
+                } catch (IOException e) {
+                    getLogger().severe("无法为世界 " + world.getName() + " 创建配置文件，错误：" + e.getMessage());
+                }
+            }
+            config = YamlConfiguration.loadConfiguration(worldConfigFile);
+            worldConfigs.put(world, config);
+        }
+        return config;
     }
 
     public void saveWorldConfig(World world) {

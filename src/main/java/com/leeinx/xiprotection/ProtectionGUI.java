@@ -107,11 +107,13 @@ public class ProtectionGUI implements Listener {
         // 读取第一页的配置并设置物品项
         for (String key : Objects.requireNonNull(config.getConfigurationSection("gui.page-1")).getKeys(false)) {
             String itemPath = "gui.page-1." + key + ".item";
+            String itemsPath = "gui.page-1." + key + ".items";
             String namePath = "gui.page-1." + key + ".name";
             int slot = config.getInt("gui.page-1." + key + ".slot", -1);  // 默认值为 -1
             List<Integer> slots = config.getIntegerList("gui.page-1." + key + ".slots");  // 读取 slots 列表
 
-            Material material = Material.getMaterial(config.getString(itemPath, "BARRIER"));
+            String materialName = config.getString(itemPath, config.getString(itemsPath, "BARRIER"));
+            Material material = Material.getMaterial(materialName);
             if (material == null) {
                 material = Material.BARRIER; // 使用默认物品
             }
@@ -141,11 +143,13 @@ public class ProtectionGUI implements Listener {
         // 读取第二页的配置并设置物品项
         for (String key : Objects.requireNonNull(config.getConfigurationSection("gui.page-2")).getKeys(false)) {
             String itemPath = "gui.page-2." + key + ".item";
+            String itemsPath = "gui.page-2." + key + ".items";
             String namePath = "gui.page-2." + key + ".name";
             int slot = config.getInt("gui.page-2." + key + ".slot", -1);  // 默认值为 -1
             List<Integer> slots = config.getIntegerList("gui.page-2." + key + ".slots");  // 读取 slots 列表
 
-            Material material = Material.getMaterial(config.getString(itemPath, "BARRIER"));
+            String materialName = config.getString(itemPath, config.getString(itemsPath, "BARRIER"));
+            Material material = Material.getMaterial(materialName);
             if (material == null) {
                 material = Material.BARRIER; // 使用默认物品
             }
