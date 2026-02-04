@@ -1,4 +1,4 @@
-package cn.hairuosky.xiprotection;
+package com.leeinx.xiprotection;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

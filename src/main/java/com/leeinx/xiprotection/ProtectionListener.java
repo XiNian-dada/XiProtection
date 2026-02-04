@@ -1,4 +1,4 @@
-package cn.hairuosky.xiprotection;
+package com.leeinx.xiprotection;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -37,19 +37,28 @@ public class ProtectionListener implements Listener {
         this.plugin = plugin;
     }
 
+    // 权限检查辅助方法
+    private boolean hasBypassPermission(Player player, String specificPermission) {
+        return player.hasPermission("xiprotection.bypass.*") || player.hasPermission(specificPermission);
+    }
+
+    // 配置检查辅助方法
+    private boolean isProtectionEnabled(World world, String protectionKey) {
+        FileConfiguration config = plugin.getWorldConfig(world);
+        return config != null && config.getBoolean("enable") && config.getBoolean(protectionKey);
+    }
+
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         // 获取破坏方块的玩家和所在世界
         Player player = event.getPlayer();
         World world = player.getWorld();
-        // 根据世界获取插件配置
-        FileConfiguration config = plugin.getWorldConfig(world);
 
         // 如果玩家拥有以下任意权限，则允许破坏方块，不再执行后续操作
-        if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.break")) return;
+        if (hasBypassPermission(player, "xiprotection.bypass.break")) return;
 
         // 检查配置是否存在且启用了世界保护和禁止方块破坏功能
-        if (config != null && config.getBoolean("enable") && config.getBoolean("protect.anti-break")) {
+        if (isProtectionEnabled(world, "protect.anti-break")) {
             // 禁止方块破坏行为
             event.setCancelled(true);
             // 发送消息通知玩家不能破坏方块
@@ -61,16 +70,14 @@ public class ProtectionListener implements Listener {
     public void onBlockPlace(BlockPlaceEvent event) {
         // 获取放置方块的玩家
         Player player = event.getPlayer();
-        // 获取玩家所在的世界上
+        // 获取玩家所在的世界
         World world = player.getWorld();
-        // 获取该世界的配置文件
-        FileConfiguration config = plugin.getWorldConfig(world);
 
         // 检查玩家是否有绕过所有保护或放置保护的权限，如果有，则直接返回，允许放置方块
-        if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.place")) return;
+        if (hasBypassPermission(player, "xiprotection.bypass.place")) return;
 
         // 检查世界配置是否存在，并且是否启用了保护功能和禁止放置方块的功能
-        if (config != null && config.getBoolean("enable") && config.getBoolean("protect.anti-place")) {
+        if (isProtectionEnabled(world, "protect.anti-place")) {
             // 取消方块放置事件，阻止玩家放置方块
             event.setCancelled(true);
             // 向玩家发送不能放置方块的消息
@@ -80,9 +87,8 @@ public class ProtectionListener implements Listener {
     @EventHandler
     public void onBlockIgnite(BlockIgniteEvent event) {
         World world = event.getBlock().getWorld();
-        FileConfiguration config = plugin.getWorldConfig(world);
 
-        if (config != null && config.getBoolean("enable") && config.getBoolean("protect.anti-fire")) {
+        if (isProtectionEnabled(world, "protect.anti-fire")) {
             event.setCancelled(true);
         }
     }
@@ -128,11 +134,10 @@ public class ProtectionListener implements Listener {
     public void onShear(PlayerShearEntityEvent event) {
         Player player = event.getPlayer();
         World world = event.getEntity().getWorld();
-        FileConfiguration config = plugin.getWorldConfig(world);
 
-        if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.shear")) return;
+        if (hasBypassPermission(player, "xiprotection.bypass.shear")) return;
 
-        if (config != null && config.getBoolean("enable") && config.getBoolean("protect.anti-shear")) {
+        if (isProtectionEnabled(world, "protect.anti-shear")) {
             event.setCancelled(true);
             if (event.getEntity().getType().equals(EntityType.SHEEP)) {
                 player.sendMessage(plugin.getLanguageText("cannot-shear","你不能在这个世界剪羊毛！"));
@@ -144,11 +149,10 @@ public class ProtectionListener implements Listener {
     public void onFoodLevelChange(FoodLevelChangeEvent event) {
         Player player = (Player) event.getEntity();
         World world = player.getWorld();
-        FileConfiguration config = plugin.getWorldConfig(world);
 
-        if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.hunger")) return;
+        if (hasBypassPermission(player, "xiprotection.bypass.hunger")) return;
 
-        if (config != null && config.getBoolean("enable") && config.getBoolean("protect.keep-full-hunger")) {
+        if (isProtectionEnabled(world, "protect.keep-full-hunger")) {
             event.setFoodLevel(20); // 设置为满饱食度
         }
     }
@@ -159,11 +163,10 @@ public class ProtectionListener implements Listener {
             Player attacker = (Player) event.getDamager();
             Player victim = (Player) event.getEntity();
             World world = attacker.getWorld();
-            FileConfiguration config = plugin.getWorldConfig(world);
 
-            if (attacker.hasPermission("xiprotection.bypass.*") || attacker.hasPermission("xiprotection.bypass.pvp")) return;
+            if (hasBypassPermission(attacker, "xiprotection.bypass.pvp")) return;
 
-            if (config != null && config.getBoolean("enable") && config.getBoolean("protect.anti-pvp")) {
+            if (isProtectionEnabled(world, "protect.anti-pvp")) {
                 event.setCancelled(true);
                 String text = plugin.getLanguageText("cannot-pvp","你不能在这个世界中进行PVP！");
                 attacker.sendMessage(text);
@@ -175,9 +178,8 @@ public class ProtectionListener implements Listener {
     @EventHandler
     public void onExplosionPrime(ExplosionPrimeEvent event) {
         World world = event.getEntity().getWorld();
-        FileConfiguration config = plugin.getWorldConfig(world);
 
-        if (config != null && config.getBoolean("enable") && config.getBoolean("protect.prevent-explosion")) {
+        if (isProtectionEnabled(world, "protect.prevent-explosion")) {
             event.setCancelled(true);
         }
     }
@@ -186,17 +188,15 @@ public class ProtectionListener implements Listener {
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
             World world = player.getWorld();
-            FileConfiguration config = plugin.getWorldConfig(world);
 
             // 权限检查
-            if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.health")) {
+            if (hasBypassPermission(player, "xiprotection.bypass.health")) {
                 return; // 如果有权限，直接返回
             }
 
             // 检查配置
-            if (config != null && config.getBoolean("enable") && config.getBoolean("protect.keep-full-health")) {
+            if (isProtectionEnabled(world, "protect.keep-full-health")) {
                 event.setCancelled(true); // 取消伤害
-
                 // 安全地获取最大生命值
                 AttributeInstance healthAttribute = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
                 if (healthAttribute != null) {
@@ -213,33 +213,30 @@ public class ProtectionListener implements Listener {
     @EventHandler
     public void onEntityExplode(EntityExplodeEvent event) {
         World world = event.getLocation().getWorld();
-        FileConfiguration config = plugin.getWorldConfig(world);
 
-        if (config != null && config.getBoolean("enable") && config.getBoolean("protect.prevent-explosion")) {
+        if (world != null && isProtectionEnabled(world, "protect.prevent-explosion")) {
             event.setCancelled(true);
         }
     }
     @EventHandler
     public void onBlockChange(EntityChangeBlockEvent event) {
         World world = event.getBlock().getWorld();
-        FileConfiguration config = plugin.getWorldConfig(world);
         Entity entity = event.getEntity();
 
         // 检查配置
-        if (config != null && config.getBoolean("enable") && config.getBoolean("protect.prevent-treading")) {
+        if (isProtectionEnabled(world, "protect.prevent-treading")) {
             // 如果耕地被踩踏
             if (event.getBlock().getType() == Material.FARMLAND) {
                 // 处理生物
                 if (entity instanceof Player) {
                     Player player = (Player) entity;
                     // 权限检查：如果是玩家并且有权限，直接返回
-                    if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.treading")) {
+                    if (hasBypassPermission(player, "xiprotection.bypass.treading")) {
                         return; // 如果有权限，直接返回
                     }
                     // 取消事件并发送消息
                     event.setCancelled(true);
                     player.sendMessage(plugin.getLanguageText("cannot-tread-farmland","你不能在这个世界中踩踏任何耕地！保护粮食好吗！"));
-                    //player.sendMessage("在这个世界中，耕地不能被踩踏。");
                 } else {
                     // 对于非玩家实体，直接取消事件
                     event.setCancelled(true);
@@ -255,19 +252,18 @@ public class ProtectionListener implements Listener {
         // 仅检查特定类型的投掷物
         if (event.getEntity() instanceof ThrownPotion || event.getEntity() instanceof Snowball) {
             World world = event.getEntity().getWorld();
-            FileConfiguration config = plugin.getWorldConfig(world);
 
             // 检查投掷物的射手是否是玩家
             if (event.getEntity().getShooter() instanceof Player) {
                 Player player = (Player) event.getEntity().getShooter();
 
                 // 权限检查
-                if (player.hasPermission("xiprotection.bypass.*") || player.hasPermission("xiprotection.bypass.throwables")) {
+                if (hasBypassPermission(player, "xiprotection.bypass.throwables")) {
                     return; // 如果有权限，直接返回
                 }
 
                 // 检查配置并取消事件
-                if (config != null && config.getBoolean("enable") && config.getBoolean("protect.prevent-throwables")) {
+                if (isProtectionEnabled(world, "protect.prevent-throwables")) {
                     event.setCancelled(true);
                     player.sendMessage(plugin.getLanguageText("cannot-use-projectile", "你不能在这个世界中使用任何投掷物！"));
                 }

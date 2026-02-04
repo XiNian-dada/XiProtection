@@ -1,0 +1,294 @@
+name: CI/CD - Auto Release from POM Version
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 获取所有历史记录，用于生成完整的commit信息
+
+    - name: Set up JDK 8
+      uses: actions/setup-java@v4
+      with:
+        java-version: '8'
+        distribution: 'adopt'
+        cache: maven
+
+    - name: Build with Maven
+      run: mvn -B compile
+
+    - name: Run Tests
+      run: mvn -B test
+
+    - name: Package
+      run: mvn -B package -DskipTests
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: XiProtection-Build
+        path: target/*.jar
+        retention-days: 7
+
+  auto-release:
+    name: Auto Release from POM
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up JDK 8
+      uses: actions/setup-java@v4
+      with:
+        java-version: '8'
+        distribution: 'adopt'
+        cache: maven
+
+    - name: 获取 POM 版本号
+      id: get_version
+      run: |
+        VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag_name=v$VERSION" >> $GITHUB_OUTPUT
+
+    - name: 检查 Tag 是否已存在
+      id: check_tag
+      run: |
+        if git rev-parse "${{ steps.get_version.outputs.tag_name }}" >/dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: 创建 Tag
+      if: steps.check_tag.outputs.exists == 'false'
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git tag -a "${{ steps.get_version.outputs.tag_name }}" -m "Release ${{ steps.get_version.outputs.tag_name }}"
+        git push origin "${{ steps.get_version.outputs.tag_name }}"
+
+    - name: 等待 Tag 同步到 GitHub API
+      if: steps.check_tag.outputs.exists == 'false'
+      run: sleep 5
+
+    - name: 下载构建产物
+      if: steps.check_tag.outputs.exists == 'false'
+      uses: actions/download-artifact@v4
+      with:
+        name: XiProtection-Build
+        path: target
+
+    - name: 生成 Release Notes
+      id: generate_release_notes
+      if: steps.check_tag.outputs.exists == 'false'
+      run: |
+        # 1. 确定当前 Tag 和版本
+        VERSION="${{ steps.get_version.outputs.version }}"
+        TAG_NAME="${{ steps.get_version.outputs.tag_name }}"
+        
+        echo "当前版本: $TAG_NAME"
+        
+        # 2. 核心修正：利用 Git 拓扑寻找上一个 Tag
+        # 逻辑：从当前 HEAD 的前一个 commit (HEAD^) 开始，寻找最近的一个 tag
+        # 如果找不到（比如这是第一个版本），则 PREVIOUS_TAG 为空
+        PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || true)
+        
+        echo "上一个版本: ${PREVIOUS_TAG:-'无 (这是第一个版本)'}"
+        
+        # 3. 获取提交日志
+        COMMITS=""
+        if [[ -n "$PREVIOUS_TAG" ]]; then
+          # 获取两个 Tag 之间的差异
+          echo "生成范围: $PREVIOUS_TAG...$TAG_NAME"
+          COMMITS=$(git log "$PREVIOUS_TAG..HEAD" --pretty=format:"%h|%s|%an|%ad" --date=short)
+        else
+          # 如果没有上一个 Tag，获取所有历史
+          echo "生成范围: 全部提交"
+          COMMITS=$(git log --pretty=format:"%h|%s|%an|%ad" --date=short)
+        fi
+
+        # 统计提交数量
+        COMMIT_COUNT=0
+        if [[ -n "$COMMITS" ]]; then
+          COMMIT_COUNT=$(echo "$COMMITS" | wc -l)
+        fi
+        
+        # 生成 Release Notes 头部
+        RELEASE_NOTES="## 🚀 XiProtection $VERSION\n\n"
+        RELEASE_NOTES+="**发布时间**: $(date '+%Y年%m月%d日')\n\n"
+        
+        if [[ -n "$PREVIOUS_TAG" ]]; then
+          RELEASE_NOTES+="**变更范围**: $PREVIOUS_TAG → $TAG_NAME\n\n"
+        else
+          RELEASE_NOTES+="**变更范围**: 初始版本\n\n"
+        fi
+        
+        RELEASE_NOTES+="### 📊 变更统计\n\n"
+        RELEASE_NOTES+="- **提交数量**: $COMMIT_COUNT 次\n"
+        # 修复了这里的各种管道命令导致可能的空值报错
+        if [[ -n "$COMMITS" ]]; then
+            AUTHOR_COUNT=$(echo "$COMMITS" | cut -d'|' -f3 | sort -u | wc -l | tr -d ' ')
+        else
+            AUTHOR_COUNT=0
+        fi
+        RELEASE_NOTES+="- **提交者**: $AUTHOR_COUNT 人\n\n"
+        
+        RELEASE_NOTES+="### 📝 变更内容\n\n"
+        
+        if [[ -z "$COMMITS" ]]; then
+          RELEASE_NOTES+"> ℹ️ 自上次发布以来没有变更\n\n"
+        else
+          # 按提交类型分类 (逻辑保持不变)
+          FEATURE_COMMITS=$(echo "$COMMITS" | grep -iE "^(feat|feature|add|新增|添加)" || true)
+          FIX_COMMITS=$(echo "$COMMITS" | grep -iE "^(fix|bug|修复|修正)" || true)
+          DOCS_COMMITS=$(echo "$COMMITS" | grep -iE "^(docs|doc|文档|readme)" || true)
+          REFACTOR_COMMITS=$(echo "$COMMITS" | grep -iE "^(refactor|refact|重构|优化)" || true)
+          # 排除上述所有关键词
+          OTHER_COMMITS=$(echo "$COMMITS" | grep -vE "^(feat|feature|add|fix|bug|docs|doc|refactor|refact|新增|添加|修复|修正|文档|readme|重构|优化)" || true)
+          
+          # 辅助函数：输出列表
+          function print_commits() {
+              while IFS='|' read -r hash message author date; do
+                # 移除可能存在的引号，防止破坏 Markdown
+                clean_msg=$(echo "$message" | sed 's/"//g')
+                echo "- $clean_msg"
+              done <<< "$1"
+          }
+          
+          if [[ -n "$FEATURE_COMMITS" ]]; then
+            RELEASE_NOTES+="#### ✨ 新功能\n\n"
+            # 捕获函数输出并追加
+            OUTPUT=$(print_commits "$FEATURE_COMMITS")
+            RELEASE_NOTES+="$OUTPUT\n\n"
+          fi
+          
+          if [[ -n "$FIX_COMMITS" ]]; then
+            RELEASE_NOTES+="#### 🐛 问题修复\n\n"
+            OUTPUT=$(print_commits "$FIX_COMMITS")
+            RELEASE_NOTES+="$OUTPUT\n\n"
+          fi
+          
+          if [[ -n "$DOCS_COMMITS" ]]; then
+            RELEASE_NOTES+="#### 📚 文档更新\n\n"
+            OUTPUT=$(print_commits "$DOCS_COMMITS")
+            RELEASE_NOTES+="$OUTPUT\n\n"
+          fi
+          
+          if [[ -n "$REFACTOR_COMMITS" ]]; then
+            RELEASE_NOTES+="#### ⚡ 代码优化\n\n"
+            OUTPUT=$(print_commits "$REFACTOR_COMMITS")
+            RELEASE_NOTES+="$OUTPUT\n\n"
+          fi
+          
+          if [[ -n "$OTHER_COMMITS" ]]; then
+            RELEASE_NOTES+="#### 🔧 其他变更\n\n"
+            OUTPUT=$(print_commits "$OTHER_COMMITS")
+            RELEASE_NOTES+="$OUTPUT\n\n"
+          fi
+        fi
+        
+        RELEASE_NOTES+="---\n\n"
+        RELEASE_NOTES+="### 📥 下载地址\n\n"
+        RELEASE_NOTES+="| 文件名 | 下载链接 |\n"
+        RELEASE_NOTES+="|--------|----------|\n"
+        RELEASE_NOTES+="| XiProtection-${VERSION}.jar | [下载](https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/XiProtection-${VERSION}.jar) |\n\n"
+        
+        RELEASE_NOTES+="### 🔗 相关链接\n\n"
+        RELEASE_NOTES+="- [完整提交历史](https://github.com/${{ github.repository }}/commits/${TAG_NAME})\n"
+        if [[ -n "$PREVIOUS_TAG" ]]; then
+          RELEASE_NOTES+="- [与上个版本的差异](https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...${TAG_NAME})\n"
+        fi
+        RELEASE_NOTES+="- [问题反馈](https://github.com/${{ github.repository }}/issues)\n\n"
+        
+        RELEASE_NOTES+="---\n\n"
+        RELEASE_NOTES+="<details>\n"
+        RELEASE_NOTES+="<summary>📋 详细提交列表</summary>\n\n"
+        if [[ -n "$COMMITS" ]]; then
+          while IFS='|' read -r hash message author date; do
+            clean_msg=$(echo "$message" | sed 's/"//g')
+            RELEASE_NOTES+="- **$hash** - $clean_msg\n"
+            RELEASE_NOTES+="  - 作者: $author\n"
+            RELEASE_NOTES+="  - 日期: $date\n\n"
+          done <<< "$COMMITS"
+        fi
+        RELEASE_NOTES+="</details>\n"
+        
+        # 1. 生成随机定界符（防止内容中包含EOF导致截断）
+        delimiter="$(openssl rand -hex 8)"
+        
+        # 2. 写入 GITHUB_OUTPUT
+        echo "release_notes<<$delimiter" >> "$GITHUB_OUTPUT"
+        
+        # 3. 关键修改：使用 echo -e 强制解析 \n 为换行
+        echo -e "$RELEASE_NOTES" >> "$GITHUB_OUTPUT"
+        
+        echo "$delimiter" >> "$GITHUB_OUTPUT"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: 获取 JAR 文件名
+      if: steps.check_tag.outputs.exists == 'false'
+      id: get_jar_name
+      run: |
+        JAR_FILE=$(ls target/*.jar | grep -v original | head -1)
+        echo "jar_file=${JAR_FILE}" >> $GITHUB_OUTPUT
+        echo "jar_name=$(basename $JAR_FILE)" >> $GITHUB_OUTPUT
+
+    - name: 创建 Release
+      if: steps.check_tag.outputs.exists == 'false'
+      uses: softprops/action-gh-release@v2
+      with:
+        name: XiProtection ${{ steps.get_version.outputs.version }}
+        tag_name: ${{ steps.get_version.outputs.tag_name }}
+        body: ${{ steps.generate_release_notes.outputs.release_notes }}
+        files: ${{ steps.get_jar_name.outputs.jar_file }}
+        draft: false
+        prerelease: false
+
+  quality-check:
+    name: Quality Check
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 8
+      uses: actions/setup-java@v4
+      with:
+        java-version: '8'
+        distribution: 'adopt'
+        cache: maven
+
+    - name: Run Maven Verify
+      run: mvn -B verify -DskipTests
+
+    - name: Check Code Style
+      run: mvn -B checkstyle:check
+
+    - name: Check for Vulnerabilities
+      run: mvn -B org.owasp:dependency-check-maven:check
+      continue-on-error: true  # 漏洞检查结果不影响构建

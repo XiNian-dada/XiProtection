@@ -1,6 +1,6 @@
 name: XiProtection
 version: '${project.version}'
-main: cn.hairuosky.xiprotection.XiProtection
+main: com.leeinx.xiprotection.XiProtection
 api-version: '1.16'
 author: XiNian_dada
 commands:

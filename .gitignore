@@ -1,5 +1,6 @@
 # User-specific stuff
 .idea/
+.trae/
 
 *.iml
 *.ipr
@@ -111,3 +112,4 @@ buildNumber.properties
 
 # Common working directory
 run/
+p.md
