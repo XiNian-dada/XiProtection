@@ -84,8 +84,8 @@ public class XiProtection extends JavaPlugin {
         // 取消现有的任务（如果存在）
         cancelTasks();
 
-        // 定时任务更新天气和时间
-        updateTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(this, protectionListener::updateWorldSettings, 0L, updateInterval).getTaskId();
+        // 定时任务更新天气和时间（使用同步调度，因为需要操作 Bukkit API）
+        updateTaskId = Bukkit.getScheduler().runTaskTimer(this, protectionListener::updateWorldSettings, 0L, updateInterval).getTaskId();
         itemCheckTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(this, this::checkAllPlayersItems, 0L, itemCheckInterval).getTaskId();
         effectCheckTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(this, this::checkAllPlayersEffects, 0L, effectCheckInterval).getTaskId();
     }

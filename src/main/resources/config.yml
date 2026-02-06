@@ -13,6 +13,7 @@ gui:
     world_nether: DIAMOND_SWORD
   # 第一页配置
   page-1:
+    # 基本保护功能（第一行）
     anti-break:
       item: DIAMOND_PICKAXE
       slot: 9
@@ -23,98 +24,219 @@ gui:
       slot: 10
       name: "&6防止放置"  # 黄色
       function: "anti-place"
-    always-sun:
-      item: GOLDEN_SWORD
-      slot: 11
-      name: "&e永远晴天"  # 黄色
-      function: "always-sun"
-    always-rain:
-      item: WATER_BUCKET
-      slot: 12
-      name: "&9永远下雨"  # 蓝色
-      function: "always-rain"
-    always-day:
-      item: GOLDEN_SWORD
-      slot: 13
-      name: "&a永远白天"  # 绿色
-      function: "always-day"
-    always-night:
-      item: GOLDEN_SWORD
-      slot: 14
-      name: "&5永远黑夜"  # 紫色
-      function: "always-night"
-    anti-fire:
-      item: FIRE
-      slot: 15
-      name: "&4防止火灾"  # 深红色
-      function: "anti-fire"
-    anti-shear:
-      item: SHEARS
-      slot: 16
-      name: "&7防止剪切"  # 灰色
-      function: "anti-shear"
-    keep-full-hunger:
-      item: COOKED_BEEF
-      slot: 17
-      name: "&2保持饥饿值"  # 深绿色
-      function: "keep-full-hunger"
     anti-pvp:
       item: DIAMOND_SWORD
-      slot: 18
+      slot: 11
       name: "&c防止 PvP"  # 红色
       function: "anti-pvp"
     prevent-explosion:
       item: TNT
-      slot: 19
+      slot: 12
       name: "&6防止爆炸"  # 黄色
       function: "prevent-explosion"
-    keep-full-health:
-      item: GOLDEN_APPLE
-      slot: 20
-      name: "&d保持生命值"  # 粉色
-      function: "keep-full-health"
-    prevent-treading:
-      item: GRASS_BLOCK
-      slot: 21
-      name: "&2防止踩踏"  # 深绿色
-      function: "prevent-treading"
+    anti-fire:
+      item: FLINT_AND_STEEL
+      slot: 13
+      name: "&4防止火灾"  # 深红色
+      function: "anti-fire"
+    anti-shear:
+      item: SHEARS
+      slot: 14
+      name: "&7防止剪切"  # 灰色
+      function: "anti-shear"
     prevent-throwables:
       item: ENDER_PEARL
-      slot: 22
+      slot: 15
       name: "&b防止投掷物"  # 浅蓝色
       function: "prevent-throwables"
-    keep-items-enabled:
-      item: CHEST
-      slot: 23
-      name: "&6保持物品启用"  # 黄色
-      function: "keep-items-enabled"
-    banned-commands-enabled:
-      item: BARRIER
-      slot: 24
-      name: "&8禁止命令启用"  # 黑色
-      function: "banned-commands-enabled"
+    
+    # 环境控制功能（第二行）
+    always-sun:
+      item: SUNFLOWER
+      slot: 18
+      name: "&e永远晴天"  # 黄色
+      function: "always-sun"
+    always-rain:
+      item: WATER_BUCKET
+      slot: 19
+      name: "&9永远下雨"  # 蓝色
+      function: "always-rain"
+    always-day:
+      item: CLOCK
+      slot: 20
+      name: "&a永远白天"  # 绿色
+      function: "always-day"
+    always-night:
+      item: CLOCK
+      slot: 21
+      name: "&5永远黑夜"  # 紫色
+      function: "always-night"
+    
+    # 玩家状态控制功能（第三行）
+    keep-full-health:
+      item: GOLDEN_APPLE
+      slot: 27
+      name: "&d保持生命值"  # 粉色
+      function: "keep-full-health"
+    keep-full-hunger:
+      item: COOKED_BEEF
+      slot: 28
+      name: "&2保持饥饿值"  # 深绿色
+      function: "keep-full-hunger"
     prevent-eating:
       item: COOKED_BEEF
-      slot: 25
+      slot: 29
       name: "&f防止吃食"  # 白色
       function: "prevent-eating"
     prevent-drinking:
       item: POTION
-      slot: 26
+      slot: 30
       name: "&a防止饮水"  # 绿色
       function: "prevent-drinking"
+    
+    # 高级功能（第四行）
+    keep-items-enabled:
+      item: CHEST
+      slot: 36
+      name: "&6保持物品启用"  # 黄色
+      function: "keep-items-enabled"
+    banned-commands-enabled:
+      item: BARRIER
+      slot: 37
+      name: "&8禁止命令启用"  # 黑色
+      function: "banned-commands-enabled"
     prevent-potion-effects-enabled:
       item: POTION
-      slot: 27
+      slot: 38
       name: "&9防止药水效果"  # 蓝色
       function: "prevent-potion-effects-enabled"
     keep-potion-effects-enabled:
       item: POTION
-      slot: 28
+      slot: 39
       name: "&d保持药水效果"  # 粉色
       function: "keep-potion-effects-enabled"
+    
+    # 门和开关类（第五行）
+    door:
+      item: OAK_DOOR
+      slot: 45
+      name: "&7防止开门"  # 灰色
+      function: "prevent-interactions.door"
+    trapdoor:
+      item: TRAPDOOR
+      slot: 46
+      name: "&7防止打开活版门"  # 灰色
+      function: "prevent-interactions.trapdoor"
+    button:
+      item: STONE_BUTTON
+      slot: 47
+      name: "&7防止按按钮"  # 灰色
+      function: "prevent-interactions.button"
+    lever:
+      item: LEVER
+      slot: 48
+      name: "&7防止拉拉杆"  # 灰色
+      function: "prevent-interactions.lever"
+    
+    # 容器类（第六行）
+    chest:
+      item: CHEST
+      slot: 49
+      name: "&7防止打开箱子"  # 灰色
+      function: "prevent-interactions.chest"
+    ender_chest:
+      item: END_PORTAL_FRAME
+      slot: 50
+      name: "&7防止打开末影箱"  # 灰色
+      function: "prevent-interactions.ender_chest"
+    shulker_box:
+      item: SHULKER_BOX
+      slot: 51
+      name: "&7防止打开潜影盒"  # 灰色
+      function: "prevent-interactions.shulker_box"
+    barrel:
+      item: BARREL
+      slot: 52
+      name: "&7防止使用木桶"  # 灰色
+      function: "prevent-interactions.barrel"
+    
+    # 功能方块类（第七行）
+    furnace:
+      item: FURNACE
+      slot: 27
+      name: "&7防止使用熔炉"  # 灰色
+      function: "prevent-interactions.furnace"
+    brewing_stand:
+      item: BREWING_STAND
+      slot: 28
+      name: "&7防止使用酿造台"  # 灰色
+      function: "prevent-interactions.brewing_stand"
+    enchantment_table:
+      item: ENCHANTING_TABLE
+      slot: 29
+      name: "&7防止使用附魔台"  # 灰色
+      function: "prevent-interactions.enchanting_table"
+    beacon:
+      item: BEACON
+      slot: 30
+      name: "&7防止使用信标"  # 灰色
+      function: "prevent-interactions.beacon"
+    
+    # 工作台类
+    cartography_table:
+      item: CARTOGRAPHY_TABLE
+      slot: 31
+      name: "&7防止使用制图台"  # 灰色
+      function: "prevent-interactions.cartography_table"
+    grindstone:
+      item: GRINDSTONE
+      slot: 32
+      name: "&7防止使用砂轮"  # 灰色
+      function: "prevent-interactions.grindstone"
+    smithing_table:
+      item: SMITHING_TABLE
+      slot: 33
+      name: "&7防止使用锻造台"  # 灰色
+      function: "prevent-interactions.smithing_table"
+    stonecutter:
+      item: STONECUTTER
+      slot: 34
+      name: "&7防止使用切石机"  # 灰色
+      function: "prevent-interactions.stonecutter"
+    
+    # 其他交互类
+    anvil:
+      item: ANVIL
+      slot: 35
+      name: "&7防止使用铁砧"  # 灰色
+      function: "prevent-interactions.anvil"
+    lectern:
+      item: LECTERN
+      slot: 40
+      name: "&7防止使用讲台"  # 灰色
+      function: "prevent-interactions.lectern"
+    jukebox:
+      item: JUKEBOX
+      slot: 41
+      name: "&7防止使用唱片盒"  # 灰色
+      function: "prevent-interactions.jukebox"
+    note_block:
+      item: NOTE_BLOCK
+      slot: 42
+      name: "&7防止使用音符盒"  # 灰色
+      function: "prevent-interactions.note_block"
+    pressure_plate:
+      item: STONE_PRESSURE_PLATE
+      slot: 43
+      name: "&7防止触发压力板"  # 灰色
+      function: "prevent-interactions.pressure_plate"
+    dispenser:
+      item: DISPENSER
+      slot: 44
+      name: "&7防止使用发射器"  # 灰色
+      function: "prevent-interactions.dispenser"
     decorations:
-      items: GRASS
+      items: GRASS_BLOCK
       name: "&2装饰"  # 绿色
       slots:
         - 0
@@ -254,8 +376,9 @@ gui:
 
   # 第二页配置
   page-2:
+    # 装饰物品
     decorations_2:
-      items: GRASS
+      items: GRASS_BLOCK
       name: "&2装饰"  # 绿色
       slots:
         - 0
@@ -267,51 +390,57 @@ gui:
         - 6
         - 7
       function: "decorate"
+    
+    # 门和栅栏类
     fence_gate:
       item: FENCE_GATE
-      slot: 8
+      slot: 9
       name: "&7防止使用栅栏门"  # 灰色
       function: "prevent-interactions.fence_gate"
-    composter:
-      item: COMPOSTER
-      slot: 9
-      name: "&7防止使用堆肥箱"  # 灰色
-      function: "prevent-interactions.composter"
-    beehive:
-      item: BEEHIVE
-      slot: 10
-      name: "&7防止使用蜂箱"  # 灰色
-      function: "prevent-interactions.beehive"
-    bee_nest:
-      item: BEE_NEST
-      slot: 11
-      name: "&7防止使用蜂巢"  # 灰色
-      function: "prevent-interactions.bee_nest"
+    
+    # 特殊方块类
     daylight_detector:
       item: DAYLIGHT_DETECTOR
-      slot: 12
+      slot: 10
       name: "&7防止使用日光传感器"  # 灰色
       function: "prevent-interactions.daylight_detector"
     tripwire_hook:
       item: TRIPWIRE_HOOK
-      slot: 13
+      slot: 11
       name: "&7防止触发拉线"  # 灰色
       function: "prevent-interactions.tripwire_hook"
-    bed:
-      item: BED
-      slot: 14
-      name: "&7防止使用床"  # 灰色
-      function: "prevent-interactions.bed"
-    bell:
-      item: BELL
-      slot: 15
-      name: "&7防止敲钟"  # 灰色
-      function: "prevent-interactions.bell"
+    composter:
+      item: COMPOSTER
+      slot: 12
+      name: "&7防止使用堆肥箱"  # 灰色
+      function: "prevent-interactions.composter"
     cauldron:
       item: CAULDRON
-      slot: 16
+      slot: 13
       name: "&7防止使用锅"
       function: "prevent-interactions.cauldron"
+    bell:
+      item: BELL
+      slot: 14
+      name: "&7防止敲钟"  # 灰色
+      function: "prevent-interactions.bell"
+    bed:
+      item: BED
+      slot: 15
+      name: "&7防止使用床"  # 灰色
+      function: "prevent-interactions.bed"
+    beehive:
+      item: BEEHIVE
+      slot: 16
+      name: "&7防止使用蜂箱"  # 灰色
+      function: "prevent-interactions.beehive"
+    bee_nest:
+      item: BEE_NEST
+      slot: 17
+      name: "&7防止使用蜂巢"  # 灰色
+      function: "prevent-interactions.bee_nest"
+    
+    # 翻页按钮
     previous_page:
       item: ARROW
       slot: 45
